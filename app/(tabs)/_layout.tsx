@@ -1,33 +1,46 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import React from 'react';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: '#000',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          height: 65,
+        },
+        sceneStyle: {
+          backgroundColor: '#fff',
+          paddingVertical: 60,
+          paddingHorizontal: 20,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'home-sharp' : 'home-outline'} size={24} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="collection"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'cart-sharp' : 'cart-outline'} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="about"
+        options={{
+          tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'information-circle-sharp' : 'information-circle-outline'} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="contact"
+        options={{
+          tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'call-sharp' : 'call-outline'} size={24} />,
         }}
       />
     </Tabs>

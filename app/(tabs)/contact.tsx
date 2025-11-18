@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function index() {
+export default function contact() {
   return (
     <View style={styles.container}>
-      <Text>Home Page</Text>
+      <Text>Contact Page</Text>
     </View>
   );
 }

@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function index() {
+export default function about() {
   return (
     <View style={styles.container}>
-      <Text>Home Page</Text>
+      <Text>About Page</Text>
     </View>
   );
 }
