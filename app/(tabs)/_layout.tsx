@@ -14,7 +14,7 @@ export default function TabsLayout() {
         },
         sceneStyle: {
           backgroundColor: '#fff',
-          paddingVertical: 60,
+          paddingTop: 60,
           paddingHorizontal: 20,
         },
       }}
