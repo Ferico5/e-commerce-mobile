@@ -1,4 +1,5 @@
 import ProductBox from '@/components/ProductBox';
+import ProductSkeleton from '@/components/ProductSkeleton';
 import TitleBox from '@/components/TitleBox';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -27,6 +28,7 @@ export default function Index() {
 
   const [lastCollectionList, setLastCollectionList] = useState<Product[]>([]);
   const [bestSellerList, setBestSellerList] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatestProducts = async () => {
@@ -41,6 +43,8 @@ export default function Index() {
       } catch (error) {
         console.log('Error fetching products:', error);
         Alert.alert('Error', 'Failed to load products.');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchLatestProducts();
@@ -62,6 +66,8 @@ export default function Index() {
       } catch (error) {
         console.log('Error fetching products:', error);
         Alert.alert('Error', 'Failed to load products.');
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchBestSellers();
@@ -101,9 +107,15 @@ export default function Index() {
 
       {/* Product List */}
       <View style={styles.mainProductContainer}>
-        {lastCollectionList.map((product) => (
-          <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />
-        ))}
+        {isLoading ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </View>
+        ) : (
+          lastCollectionList.map((product) => <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />)
+        )}
       </View>
 
       {/* Latest Collection */}
@@ -112,9 +124,15 @@ export default function Index() {
 
       {/* Product List */}
       <View style={styles.mainProductContainer}>
-        {bestSellerList.map((product) => (
-          <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />
-        ))}
+        {isLoading ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </View>
+        ) : (
+          bestSellerList.map((product) => <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />)
+        )}
       </View>
     </ScrollView>
   );
