@@ -26,6 +26,7 @@ export default function Index() {
   }
 
   const [lastCollectionList, setLastCollectionList] = useState<Product[]>([]);
+  const [bestSellerList, setBestSellerList] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchLatestProducts = async () => {
@@ -43,6 +44,27 @@ export default function Index() {
       }
     };
     fetchLatestProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const res = await axios.get('/list');
+        const data = res.data;
+
+        if (data.listProduct) {
+          const bestSeller = data.listProduct
+            .filter((item: Product) => item.bestSeller === true)
+            .sort((a: Product, b: Product) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            .slice(0, 5);
+          setBestSellerList(bestSeller);
+        }
+      } catch (error) {
+        console.log('Error fetching products:', error);
+        Alert.alert('Error', 'Failed to load products.');
+      }
+    };
+    fetchBestSellers();
   }, []);
 
   return (
@@ -80,6 +102,17 @@ export default function Index() {
       {/* Product List */}
       <View style={styles.mainProductContainer}>
         {lastCollectionList.map((product) => (
+          <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />
+        ))}
+      </View>
+
+      {/* Latest Collection */}
+      <TitleBox first="BEST" second="SELLERS" />
+      <Text style={[styles.fontOutfit, styles.textAlignCenter]}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the.</Text>
+
+      {/* Product List */}
+      <View style={styles.mainProductContainer}>
+        {bestSellerList.map((product) => (
           <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />
         ))}
       </View>
@@ -154,5 +187,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 30,
+    marginBottom: 50,
   },
 });
