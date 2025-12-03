@@ -4,12 +4,16 @@ import TitleBox from '@/components/TitleBox';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
+import WhyUs from '@/components/WhyUs';
 
 const LogoIcon = require('@/assets/frontend_assets/logo.png');
 const searchIcon = require('@/assets/frontend_assets/search_icon.png');
 const profileIcon = require('@/assets/frontend_assets/profile_icon.png');
 const cartIcon = require('@/assets/frontend_assets/cart_icon.png');
 const heroImage = require('@/assets/frontend_assets/hero_img.png');
+const exchangeIcon = require('@/assets/frontend_assets/exchange_icon.png');
+const qualityIcon = require('@/assets/frontend_assets/quality_icon.png');
+const supportIcon = require('@/assets/frontend_assets/support_img.png');
 
 export default function Index() {
   interface Product {
@@ -109,7 +113,7 @@ export default function Index() {
       <View style={styles.mainProductContainer}>
         {isLoading ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 10 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
           </View>
@@ -126,13 +130,20 @@ export default function Index() {
       <View style={styles.mainProductContainer}>
         {isLoading ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 5 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
           </View>
         ) : (
           bestSellerList.map((product) => <ProductBox key={product._id} id={product._id} image={product.image[0]} name={product.name} price={product.price} />)
         )}
+      </View>
+
+      {/* Why Forever */}
+      <View style={styles.whyContainer}>
+        <WhyUs image={exchangeIcon} title='Easy Exchange Policy' text='We offer hassle free exchange policy' />
+        <WhyUs image={qualityIcon} title='7 Days Return Policy' text='We provide 7 days free return policy' />
+        <WhyUs image={supportIcon} title='Best customer support' text='We provide 24/7 customer support' />
       </View>
     </ScrollView>
   );
@@ -206,5 +217,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 30,
     marginBottom: 50,
+  },
+  whyContainer: {
+    height: 420,
+    justifyContent: 'space-between',
+    marginBottom: 30,
   },
 });
