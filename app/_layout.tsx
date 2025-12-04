@@ -1,3 +1,4 @@
+import "@/global.css";
 import { Stack } from 'expo-router';
 import { useFonts } from "expo-font";
 import {Outfit_400Regular} from '@expo-google-fonts/outfit'
