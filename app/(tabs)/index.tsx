@@ -1,10 +1,11 @@
 import ProductBox from '@/components/ProductBox';
 import ProductSkeleton from '@/components/ProductSkeleton';
 import TitleBox from '@/components/TitleBox';
+import WhyUs from '@/components/WhyUs';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
-import WhyUs from '@/components/WhyUs';
+import SubscribeBox from '@/components/SubscribeBox';
 
 const LogoIcon = require('@/assets/frontend_assets/logo.png');
 const searchIcon = require('@/assets/frontend_assets/search_icon.png');
@@ -141,10 +142,13 @@ export default function Index() {
 
       {/* Why Forever */}
       <View style={styles.whyContainer}>
-        <WhyUs image={exchangeIcon} title='Easy Exchange Policy' text='We offer hassle free exchange policy' />
-        <WhyUs image={qualityIcon} title='7 Days Return Policy' text='We provide 7 days free return policy' />
-        <WhyUs image={supportIcon} title='Best customer support' text='We provide 24/7 customer support' />
+        <WhyUs image={exchangeIcon} title="Easy Exchange Policy" text="We offer hassle free exchange policy" />
+        <WhyUs image={qualityIcon} title="7 Days Return Policy" text="We provide 7 days free return policy" />
+        <WhyUs image={supportIcon} title="Best customer support" text="We provide 24/7 customer support" />
       </View>
+
+      {/* Subscribe */}
+      <SubscribeBox />
     </ScrollView>
   );
 }
