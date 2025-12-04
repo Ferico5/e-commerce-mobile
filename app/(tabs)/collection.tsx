@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
+import Footer from '@/components/Footer';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function collection() {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text>Collection Page</Text>
-    </View>
+      <Footer />
+    </ScrollView>
   );
 }
 

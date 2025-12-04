@@ -1,11 +1,12 @@
 import ProductBox from '@/components/ProductBox';
 import ProductSkeleton from '@/components/ProductSkeleton';
+import SubscribeBox from '@/components/SubscribeBox';
 import TitleBox from '@/components/TitleBox';
 import WhyUs from '@/components/WhyUs';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
-import SubscribeBox from '@/components/SubscribeBox';
+import Footer from '@/components/Footer';
 
 const LogoIcon = require('@/assets/frontend_assets/logo.png');
 const searchIcon = require('@/assets/frontend_assets/search_icon.png');
@@ -149,6 +150,9 @@ export default function Index() {
 
       {/* Subscribe */}
       <SubscribeBox />
+
+      {/* Footer */}
+      <Footer />
     </ScrollView>
   );
 }

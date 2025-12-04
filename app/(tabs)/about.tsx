@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View } from 'react-native';
+import Footer from '@/components/Footer';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function about() {
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text>About Page</Text>
-    </View>
+      <Footer />
+    </ScrollView>
   );
 }
 
