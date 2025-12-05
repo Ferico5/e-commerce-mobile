@@ -1,74 +1,34 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 const LogoIcon = require('@/assets/frontend_assets/logo.png');
 
 export default function Footer() {
   return (
-    <View style={styles.footerContainer}>
+    <View className="pt-[50]">
       {/* Top Section */}
-      <View style={styles.topRowFooter}>
-        <View style={styles.mainContentFooter}>
-          <Image source={LogoIcon} style={styles.logo} resizeMode="contain" />
+      <View className="mb-[15]">
+        <View className="w-full">
+          <Image source={LogoIcon} className="w-[140] h-[50] mb-[15]" resizeMode="contain" />
 
-          <Text style={[styles.descFooter, styles.fontOutfit]}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&apos; standard dummy text ever since the 1500s.</Text>
+          <Text className="font-outfit text-[#595959]">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&apos; standard dummy text ever since the 1500s.</Text>
         </View>
 
         {/* Company */}
-        <View style={styles.column}>
-          <Text style={[styles.heading, styles.fontOutfit]}>COMPANY</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>Home</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>About us</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>Delivery</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>Privacy policy</Text>
+        <View className="w-[48%] mt-[30]">
+          <Text className="font-outfit text-2xl font-bold mb-[15]">COMPANY</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">Home</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">About us</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">Delivery</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">Privacy policy</Text>
         </View>
 
         {/* Get In Touch */}
-        <View style={styles.column}>
-          <Text style={[styles.heading, styles.fontOutfit]}>GET IN TOUCH</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>+62-000-000-0000</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>anonymous@gmail.com</Text>
-          <Text style={[styles.item, styles.fontOutfit]}>Instagram</Text>
+        <View className="w-[48%] mt-[30]">
+          <Text className="font-outfit text-2xl font-bold mb-[15]">GET IN TOUCH</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">+62-000-000-0000</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">anonymous@gmail.com</Text>
+          <Text className="font-outfit text-[#595959] mb-[4]">Instagram</Text>
         </View>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  fontOutfit: {
-    fontFamily: 'Outfit_400Regular',
-  },
-  footerContainer: {
-    paddingTop: 50,
-  },
-  topRowFooter: {
-    flexDirection: 'column',
-    marginBottom: 15,
-  },
-  mainContentFooter: {
-    width: '100%',
-  },
-  logo: {
-    width: 140,
-    height: 50,
-    marginBottom: 15,
-  },
-  descFooter: {
-    fontSize: 14,
-    color: '#595959',
-    lineHeight: 20,
-  },
-  column: {
-    width: '48%',
-    marginTop: 30,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 15,
-  },
-  item: {
-    color: '#595959',
-    fontSize: 14,
-    marginBottom: 4,
-  },
-});

@@ -1,12 +1,12 @@
+import Footer from '@/components/Footer';
 import ProductBox from '@/components/ProductBox';
 import ProductSkeleton from '@/components/ProductSkeleton';
 import SubscribeBox from '@/components/SubscribeBox';
 import TitleBox from '@/components/TitleBox';
 import WhyUs from '@/components/WhyUs';
 import { useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, ScrollView, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
-import Footer from '@/components/Footer';
 
 const LogoIcon = require('@/assets/frontend_assets/logo.png');
 const searchIcon = require('@/assets/frontend_assets/search_icon.png');
@@ -80,41 +80,41 @@ export default function Index() {
   }, []);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView className="flex" showsVerticalScrollIndicator={false}>
       {/* header */}
-      <View style={styles.header}>
+      <View className="justify-between items-center flex-row">
         {/* Image */}
-        <Image source={LogoIcon} style={styles.logoIcon} />
+        <Image source={LogoIcon} className="w-[35%]" resizeMode="contain" />
 
         {/* Icon */}
-        <View style={styles.iconContainer}>
-          <Image source={searchIcon} style={styles.icon} />
-          <Image source={profileIcon} style={styles.icon} />
-          <Image source={cartIcon} style={styles.icon} />
+        <View className="flex-row w-[35%] justify-between">
+          <Image source={searchIcon} className="w-7 h-7" resizeMode="contain" />
+          <Image source={profileIcon} className="w-7 h-7" resizeMode="contain" />
+          <Image source={cartIcon} className="w-7 h-7" resizeMode="contain" />
         </View>
       </View>
 
       {/* Hero */}
-      <View style={styles.hero}>
+      <View className="justify-between items-center border border-1 mt-8 mb-12">
         {/* Text Hero */}
-        <View style={styles.heroText}>
-          <Text style={[styles.fontOutfit, styles.fontBold]}>OUR BESTSELLERS</Text>
-          <Text style={[styles.fontPrata, styles.textSize]}>Latest Arrivals</Text>
-          <Text style={[styles.fontOutfit, styles.fontBold]}>SHOP NOW</Text>
+        <View className="w-[45%] mt-10 gap-3">
+          <Text className="font-outfit font-bold">OUR BESTSELLERS</Text>
+          <Text className="font-prata text-2xl">Latest Arrivals</Text>
+          <Text className="font-outfit font-bold">SHOP NOW</Text>
         </View>
 
         {/* Image Hero */}
-        <Image source={heroImage} style={styles.heroImage} />
+        <Image source={heroImage} className="w-full h-[280] mt-12" resizeMode="contain" />
       </View>
 
       {/* Latest Collection */}
       <TitleBox first="LATEST" second="COLLECTION" />
-      <Text style={[styles.fontOutfit, styles.textAlignCenter]}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the.</Text>
+      <Text className="font-outfit text-center">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the.</Text>
 
       {/* Product List */}
-      <View style={styles.mainProductContainer}>
+      <View className="flex flex-row flex-wrap justify-between mt-10 mb-[70]">
         {isLoading ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+          <View className="flex-row flex-wrap justify-between w-full">
             {Array.from({ length: 10 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
@@ -126,12 +126,12 @@ export default function Index() {
 
       {/* Latest Collection */}
       <TitleBox first="BEST" second="SELLERS" />
-      <Text style={[styles.fontOutfit, styles.textAlignCenter]}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the.</Text>
+      <Text className="font-outfit text-center">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the.</Text>
 
       {/* Product List */}
-      <View style={styles.mainProductContainer}>
+      <View className="flex flex-row flex-wrap justify-between mt-10 mb-[55]">
         {isLoading ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', width: '100%' }}>
+          <View className="flex-row flex-wrap justify-between w-full">
             {Array.from({ length: 5 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
@@ -142,7 +142,7 @@ export default function Index() {
       </View>
 
       {/* Why Forever */}
-      <View style={styles.whyContainer}>
+      <View className="justify-between h-[440] mb-[50]">
         <WhyUs image={exchangeIcon} title="Easy Exchange Policy" text="We offer hassle free exchange policy" />
         <WhyUs image={qualityIcon} title="7 Days Return Policy" text="We provide 7 days free return policy" />
         <WhyUs image={supportIcon} title="Best customer support" text="We provide 24/7 customer support" />
@@ -156,79 +156,3 @@ export default function Index() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    // backgroundColor: 'red'
-  },
-  header: {
-    height: 60,
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  logoIcon: {
-    width: '35%',
-    resizeMode: 'contain',
-  },
-  iconContainer: {
-    flexDirection: 'row',
-    width: '35%',
-    justifyContent: 'space-between',
-  },
-  icon: {
-    width: 25,
-    height: 25,
-    resizeMode: 'contain',
-  },
-  hero: {
-    marginTop: 20,
-    flexDirection: 'column',
-    height: 390,
-    justifyContent: 'space-between',
-    borderWidth: 1,
-    marginBottom: 40,
-  },
-  heroText: {
-    width: '50%',
-    left: '30%',
-    marginTop: 30,
-    gap: 3,
-  },
-  fontOutfit: {
-    fontFamily: 'Outfit_400Regular',
-  },
-  fontPrata: {
-    fontFamily: 'Prata_400Regular',
-  },
-  fontBold: {
-    fontWeight: 'bold',
-  },
-  textSize: {
-    fontSize: 22,
-  },
-  heroImage: {
-    flex: 1,
-    width: undefined,
-    height: undefined,
-    resizeMode: 'cover',
-    marginTop: 30,
-  },
-  textAlignCenter: {
-    textAlign: 'center',
-  },
-  mainProductContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 30,
-    marginBottom: 50,
-  },
-  whyContainer: {
-    height: 420,
-    justifyContent: 'space-between',
-    marginBottom: 30,
-  },
-});

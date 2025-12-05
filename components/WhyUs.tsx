@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Text, View } from 'react-native';
 
 type WhyUsProps = {
   image: any;
@@ -6,42 +6,17 @@ type WhyUsProps = {
   text: string;
 };
 
-export default function WhyUs({image, title, text} : WhyUsProps) {
+export default function WhyUs({ image, title, text }: WhyUsProps) {
   return (
-    <View style={styles.whyPart}>
+    <View className="flex items-center">
       {/* Image */}
-      <Image source={image} style={styles.whyPicture} />
+      <Image source={image} className="w-[13%]" resizeMode="contain" />
 
       {/* Title */}
-      <Text style={[styles.fontOutfit, styles.fontBold, styles.whyTitle]}>{title}</Text>
+      <Text className="font-outfit font-bold text-[#364153] text-xl mb-[7]">{title}</Text>
 
       {/* Text */}
-      <Text style={styles.whyText}>{text}</Text>
+      <Text className="font-outfit text-[#6A7282]">{text}</Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  whyPart: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  whyPicture: {
-    width: '13%',
-    resizeMode: 'contain',
-  },
-  whyTitle: {
-    color: '#364153',
-    fontSize: 17,
-    marginBottom: 7,
-  },
-  whyText: {
-    color: '#6A7282',
-  },
-  fontBold: {
-    fontWeight: 'bold',
-  },
-  fontOutfit: {
-    fontFamily: 'Outfit_400Regular',
-  },
-});

@@ -1,63 +1,17 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function SubscribeBox() {
   return (
-    <View style={styles.subscribeContainer}>
-      <Text style={styles.subscribeTitle}>Subscribe now & get 20% off</Text>
-      <Text style={styles.subscribeSubTitle}>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</Text>
-      <View style={styles.inputRow}>
-        <TextInput placeholder="Enter your email" autoComplete="off" style={styles.input} />
+    <View className="w-full p-[20] items-center justify-center">
+      <Text className="font-outfit text-[#1E2939] font-bold text-center text-2xl mb-[10]">Subscribe now & get 20% off</Text>
+      <Text className="font-outfit text-[#9CA3AF] text-center">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</Text>
+      <View className="mt-[18] w-full flex-row items-center justify-center">
+        <TextInput placeholder="Enter your email" autoComplete="off" className="w-[70%] h-[44] border border-[#D1D5DB] px-[12]" />
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>SUBSCRIBE</Text>
+        <TouchableOpacity className="bg-black h-[44] px-[18] items-center justify-center">
+          <Text className="font-outfit text-white text-sm font-bold">SUBSCRIBE</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  subscribeContainer: {
-    width: '100%',
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  subscribeTitle: {
-    color: '#1E2939',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 22,
-    marginBottom: 10,
-  },
-  subscribeSubTitle: {
-    color: '#9CA3AF',
-    textAlign: 'center',
-  },
-  inputRow: {
-    marginTop: 18,
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  input: {
-    width: '70%',
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    paddingHorizontal: 12,
-  },
-  button: {
-    backgroundColor: '#000',
-    height: 44,
-    paddingHorizontal: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-});
