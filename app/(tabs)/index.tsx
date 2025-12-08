@@ -1,4 +1,5 @@
 import Footer from '@/components/Footer';
+import Header from '@/components/Header';
 import ProductBox from '@/components/ProductBox';
 import ProductSkeleton from '@/components/ProductSkeleton';
 import SubscribeBox from '@/components/SubscribeBox';
@@ -8,10 +9,6 @@ import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
 
-const LogoIcon = require('@/assets/frontend_assets/logo.png');
-const searchIcon = require('@/assets/frontend_assets/search_icon.png');
-const profileIcon = require('@/assets/frontend_assets/profile_icon.png');
-const cartIcon = require('@/assets/frontend_assets/cart_icon.png');
 const heroImage = require('@/assets/frontend_assets/hero_img.png');
 const exchangeIcon = require('@/assets/frontend_assets/exchange_icon.png');
 const qualityIcon = require('@/assets/frontend_assets/quality_icon.png');
@@ -82,18 +79,7 @@ export default function Index() {
   return (
     <ScrollView className="flex" showsVerticalScrollIndicator={false}>
       {/* header */}
-      <View className="justify-between items-center flex-row">
-        {/* Image */}
-        <Image source={LogoIcon} className="w-[35%]" resizeMode="contain" />
-
-        {/* Icon */}
-        <View className="flex-row w-[35%] justify-between">
-          <Image source={searchIcon} className="w-7 h-7" resizeMode="contain" />
-          <Image source={profileIcon} className="w-7 h-7" resizeMode="contain" />
-          <Image source={cartIcon} className="w-7 h-7" resizeMode="contain" />
-        </View>
-      </View>
-
+      <Header />
       {/* Hero */}
       <View className="justify-between items-center border border-1 mt-8 mb-12">
         {/* Text Hero */}
