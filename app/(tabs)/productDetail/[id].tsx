@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
-import { useLocalSearchParams } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import axios from '../../../utils/axiosInstance';
@@ -8,10 +9,12 @@ const star = require('@/assets/frontend_assets/star_icon.png');
 const star_dull = require('@/assets/frontend_assets/star_dull_icon.png');
 
 type ProductDetailProps = {
+  _id: string;
   id: string;
   name: string;
   price: number;
   image: string[];
+  sizes: string;
 };
 
 export default function ProductDetail() {
@@ -36,6 +39,43 @@ export default function ProductDetail() {
         Alert.alert('Error', 'Failed to load product');
       });
   }, [id]);
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+
+      if (!token) {
+        router.push('/(tabs)/productDetail'); // change to login later, for now use this because havent create login page
+        return;
+      }
+
+      if (!selectedSize) {
+        Alert.alert('Error', 'Please select a size first!');
+        return;
+      }
+
+      const body = {
+        productId: product._id,
+        quantity: 1,
+        size: selectedSize,
+      };
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      await axios.post('/add-cart', body, config);
+      // await fetchCartCount();
+      Alert.alert('Success', 'Item added to cart!');
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      Alert.alert('Error', 'Failed to add item to cart');
+    }
+  };
 
   if (!product) return null;
 
@@ -79,8 +119,35 @@ export default function ProductDetail() {
       {/* Size */}
       <View className="mt-9">
         <Text className="font-outfit">Select Size</Text>
-        <View>{/* To-do: add size and save to cart */}</View>
+        <View className="flex-row gap-2 mt-3">
+          {['S', 'M', 'L', 'XL', 'XXL'].map((size) => {
+            const isAvailable = product.sizes.includes(size);
+            const isSelected = selectedSize === size;
+
+            return (
+              <Pressable
+                key={size}
+                onPress={() => isAvailable && setSelectedSize(size)}
+                disabled={!isAvailable}
+                className={`px-4 py-2 border font-medium transition rounded-sm ${isAvailable ? (isSelected ? 'bg-black text-white border-black' : 'bg-white text-black border-gray-300') : 'bg-gray-200 text-gray-400 border-gray-300'}`}
+              >
+                <Text
+                  className={`
+              ${isAvailable ? (isSelected ? 'text-white' : 'text-black') : 'text-gray-400'}
+            `}
+                >
+                  {size}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
+
+      {/* Add to Cart Button */}
+      <Pressable className="mt-9 border bg-black self-start" onPress={handleAddToCart}>
+        <Text className="px-8 py-3 text-sm text-white font-outfit">ADD TO CART</Text>
+      </Pressable>
     </ScrollView>
   );
 }
