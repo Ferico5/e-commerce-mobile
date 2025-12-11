@@ -7,7 +7,7 @@ import TitleBox from '@/components/TitleBox';
 import WhyUs from '@/components/WhyUs';
 import { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, Text, View } from 'react-native';
-import axios from '../../utils/axiosInstance';
+import axios from '../../../utils/axiosInstance';
 
 const heroImage = require('@/assets/frontend_assets/hero_img.png');
 const exchangeIcon = require('@/assets/frontend_assets/exchange_icon.png');

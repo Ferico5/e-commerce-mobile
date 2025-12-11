@@ -1,17 +1,17 @@
 import { Stack } from 'expo-router';
 
-export default function ProductLayout() {
+export default function DetailProductLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         contentStyle: {
           backgroundColor: '#fff',
-          paddingTop: 60,
-          paddingHorizontal: 20,
         },
       }}
     >
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="[id]" />
     </Stack>
   );
 }

@@ -2,7 +2,7 @@ import Header from '@/components/Header';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import axios from '../../utils/axiosInstance';
+import axios from '../../../utils/axiosInstance';
 
 const star = require('@/assets/frontend_assets/star_icon.png');
 const star_dull = require('@/assets/frontend_assets/star_dull_icon.png');
@@ -40,7 +40,7 @@ export default function ProductDetail() {
   if (!product) return null;
 
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Header />
 
       {/* Image */}
@@ -57,17 +57,29 @@ export default function ProductDetail() {
         <Image source={{ uri: mainImage }} alt="Main Product Image" className="w-full h-[450] mt-5 mb-3" resizeMode="cover"></Image>
       </View>
 
-      <View className='flex gap-3'>
+      {/* Name, Price */}
+      <View className="flex gap-3">
         <Text className="font-outfit font-bold text-2xl mt-2">{product.name}</Text>
-        <View className='flex-row gap-2 items-center'>
-          <Image source={star} className='w-4 h-4'></Image>
-          <Image source={star} className='w-4 h-4'></Image>
-          <Image source={star} className='w-4 h-4'></Image>
-          <Image source={star} className='w-4 h-4'></Image>
-          <Image source={star_dull} className='w-4 h-4'></Image>
-          <Text className='ml-3'>(122)</Text>
+        <View className="flex-row gap-2 items-center">
+          <Image source={star} className="w-4 h-4"></Image>
+          <Image source={star} className="w-4 h-4"></Image>
+          <Image source={star} className="w-4 h-4"></Image>
+          <Image source={star} className="w-4 h-4"></Image>
+          <Image source={star_dull} className="w-4 h-4"></Image>
+          <Text className="ml-3">(122)</Text>
         </View>
-        <Text className='font-outfit font-semibold text-xl mt-1'>Rp. {product.price}</Text>
+        <Text className="font-outfit font-semibold text-xl mt-1">Rp. {product.price}</Text>
+      </View>
+
+      {/* desc */}
+      <View className="mt-6">
+        <Text className="font-outfit text-[#5C6872]">A lightweight, usually knitted, pullover shirt, close-fitting and with a round neckline and short sleeves, worn as an undershirt or outer garment.</Text>
+      </View>
+
+      {/* Size */}
+      <View className="mt-9">
+        <Text className="font-outfit">Select Size</Text>
+        <View>{/* To-do: add size and save to cart */}</View>
       </View>
     </ScrollView>
   );
