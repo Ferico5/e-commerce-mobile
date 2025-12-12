@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -77,7 +78,9 @@ export default function ProductDetail() {
     }
   };
 
-  if (!product) return null;
+  if (!product) {
+    return <ProductDetailSkeleton />;
+  }
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
