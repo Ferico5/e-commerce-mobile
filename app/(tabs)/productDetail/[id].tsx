@@ -48,7 +48,7 @@ export default function ProductDetail() {
       const token = await AsyncStorage.getItem('token');
 
       if (!token) {
-        router.push('/(tabs)/productDetail'); // change to login later, for now use this because havent create login page
+        router.push('/Auth');
         return;
       }
 
