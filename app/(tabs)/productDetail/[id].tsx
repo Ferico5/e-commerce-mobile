@@ -1,3 +1,4 @@
+import { useCart } from '@/auth/CartContext';
 import Header from '@/components/Header';
 import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +25,7 @@ export default function ProductDetail() {
   const [mainImage, setMainImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const { setCartCount, fetchCartCount } = useCart();
 
   useEffect(() => {
     if (!id) return;
@@ -70,7 +72,7 @@ export default function ProductDetail() {
       };
 
       await axios.post('/add-cart', body, config);
-      // await fetchCartCount();
+      await fetchCartCount();
       Alert.alert('Success', 'Item added to cart!');
     } catch (error) {
       console.error('Failed to add to cart:', error);
