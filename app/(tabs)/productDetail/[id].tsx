@@ -1,5 +1,7 @@
 import { useCart } from '@/auth/CartContext';
+import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import ProductBox from '@/components/ProductBox';
 import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,6 +19,7 @@ type ProductDetailProps = {
   price: number;
   image: string[];
   sizes: string;
+  category: string;
 };
 
 export default function ProductDetail() {
@@ -24,7 +27,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<ProductDetailProps | null>(null);
   const [mainImage, setMainImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
-  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState<ProductDetailProps[]>([]);
   const { setCartCount, fetchCartCount } = useCart();
 
   useEffect(() => {
@@ -42,6 +45,20 @@ export default function ProductDetail() {
         Alert.alert('Error', 'Failed to load product');
       });
   }, [id]);
+
+  useEffect(() => {
+    if (product?.category) {
+      axios
+        .get(`/products?category=${product.category}`)
+        .then((res) => {
+          const filtered = res.data.products.filter((p: ProductDetailProps) => p._id !== product._id);
+          setRelatedProducts(filtered.slice(0, 5));
+        })
+        .catch((err) => {
+          console.error('Failed to fetch related products:', err);
+        });
+    }
+  }, [product]);
 
   const handleAddToCart = async () => {
     if (!product) return;
@@ -89,7 +106,7 @@ export default function ProductDetail() {
       <Header />
 
       {/* Image */}
-      <View className="flex-col-reverse">
+      <View className="flex-col-reverse border-t border-[#E5E7EB] pt-3">
         {/* Image Carousel */}
         <View className="flex-row gap-3 justify-between">
           {product.image.map((img, i) => (
@@ -153,6 +170,49 @@ export default function ProductDetail() {
       <Pressable className="mt-9 border bg-black self-start" onPress={handleAddToCart}>
         <Text className="px-8 py-3 text-sm text-white font-outfit">ADD TO CART</Text>
       </Pressable>
+
+      {/* 100% original product */}
+      <View className="mt-10 border-t border-[#E5E7EB]">
+        <Text className="font-outfit text-[#5C6872] text-sm mt-7">100% Original Product</Text>
+        <Text className="font-outfit text-[#5C6872] text-sm">Cash on delivery is available on this product.</Text>
+        <Text className="font-outfit text-[#5C6872] text-sm">Easy return and exchange policy within 7 days.</Text>
+      </View>
+
+      {/* Description */}
+      <View className="mt-10">
+        <View className="flex flex-row">
+          <Text className="font-outfit border border-[#E5E7EB] px-5 py-3 font-bold">Description</Text>
+          <Text className="font-outfit border border-[#E5E7EB] px-5 py-3">Reviews (122)</Text>
+        </View>
+        <View className="border border-[#E5E7EB] px-5 py-3">
+          <Text className="font-outfit text-[#5C6872]">
+            An e-commerce website is an online platform that facilitates the buying and selling of products or services over the internet. It serves as a virtual marketplace where businesses and individuals can showcase their products,
+            interact with customers, and conduct transactions without the need for a physical presence. E-commerce websites have gained immense popularity due to their convenience, accessibility, and the global reach they offer.
+          </Text>
+          <Text className="font-outfit text-[#5C6872]">
+            E-commerce websites typically display products or services along with detailed descriptions, images, prices, and any available variations (e.g., sizes, colors). Each product usually has its own dedicated page with relevant
+            information.
+          </Text>
+        </View>
+      </View>
+
+      {/* Related Product */}
+      <View className="mt-20">
+        {/* Header Title */}
+        <View className="flex items-center">
+          <Text className="font-outfit text-3xl text-[#707070]">
+            RELATED <Text className="text-[#171717]">PRODUCTS</Text>
+          </Text>
+        </View>
+        {/* Product List */}
+        <View className="flex-row flex-wrap justify-between mt-3">
+          {relatedProducts.map((item) => (
+            <ProductBox key={item._id} id={item._id} image={item.image[0]} name={item.name} price={item.price} />
+          ))}
+        </View>
+      </View>
+
+      <Footer />
     </ScrollView>
   );
 }
