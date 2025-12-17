@@ -148,6 +148,7 @@ export default function Collection() {
           onChangeValue={(val) => val && setSortOption(val)}
           style={{ borderColor: '#E5E7EB', borderWidth: 1, height: 30 }}
           textStyle={{ fontFamily: 'Outfit_400Regular', color: '#000', fontSize: 12 }}
+          selectedItemContainerStyle={{ backgroundColor: '#bbdefb' }}
         />
       </View>
 
