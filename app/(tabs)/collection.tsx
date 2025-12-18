@@ -5,10 +5,13 @@ import ProductBox from '@/components/ProductBox';
 import ProductSkeleton from '@/components/ProductSkeleton';
 import TitleBox from '@/components/TitleBox';
 import axios from '@/utils/axiosInstance';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
+
+const Search = require('@/assets/frontend_assets/search_icon.png');
+const Close = require('@/assets/frontend_assets/cross_icon.png');
 
 type ProductProps = {
   _id: string;
@@ -24,12 +27,8 @@ export default function Collection() {
   const [sortOption, setSortOption] = useState('Relevent');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
-  //   router.push({
-  //   pathname: '/collection',
-  //   params: { showSearch: 'true' },
-  // });
-  const { showSearch } = useLocalSearchParams();
-  // const [isSearchVisible, setIsSearchVisible] = useState(showSearch === 'true');
+  const { showSearch } = useLocalSearchParams<{ showSearch?: string }>();
+  const isSearchVisible = showSearch === 'true';
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [openFilters, setOpenFilters] = useState(false);
@@ -65,12 +64,6 @@ export default function Collection() {
       clearTimeout(handler);
     };
   }, [searchTerm]);
-
-  // useEffect(() => {
-  //   if (location.state?.showSearch) {
-  //     setShowSearch(true);
-  //   }
-  // }, [location.state]);
 
   // Filter Category (Gender)
   const handleCategoryChange = (category: string) => {
@@ -114,9 +107,29 @@ export default function Collection() {
     <ScrollView className="flex">
       <Header />
 
+      {isSearchVisible && (
+        <View className="bg-[#F9FAFB] border-y border-[#E5E7EB] py-5 flex justify-center items-center">
+          <View className="flex flex-row items-center justify-center gap-2 w-[70%]">
+            <View className="relative flex-grow">
+              <TextInput placeholder="Search" value={searchTerm} onChangeText={setSearchTerm} className="w-full h-10 px-4 py-2 pr-10 text-sm border border-[#9CA3AF] rounded-full font-outfit" />
+              <Image source={Search} className="w-3 h-3 absolute right-3 top-1/2 transform -translate-y-1/2" />
+            </View>
+
+            <Pressable
+              onPress={() => {
+                setSearchTerm('');
+                router.replace('/(tabs)/collection');
+              }}
+            >
+              <Image source={Close} className="w-3 ml-2" />
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       <View className="border-t border-[#E5E7EB] pt-3">
         <Pressable onPress={() => setOpenFilters(!openFilters)}>
-          <Text className="font-outfit text-2xl">
+          <Text className="font-outfit text-2xl mt-3">
             FILTERS
             <Text>{openFilters ? '  ▲' : '  ▼'}</Text>
           </Text>

@@ -35,7 +35,12 @@ export default function Header() {
       {/* Icon */}
       <View className={`flex-row ${user ? 'w-[50%]' : 'w-[35%]'} justify-between mr-1`}>
         {/* icon collection */}
-        <Link href={'/(tabs)/collection'}>
+        <Link
+          href={{
+            pathname: '/(tabs)/collection',
+            params: { showSearch: 'true' },
+          }}
+        >
           <Image source={searchIcon} className="w-7 h-7" resizeMode="contain" />
         </Link>
         {/* icon auth */}
