@@ -19,7 +19,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="productDetail"
+        name="index"
         options={{
           tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'home-sharp' : 'home-outline'} size={24} />,
         }}
@@ -40,6 +40,18 @@ export default function TabsLayout() {
         name="contact"
         options={{
           tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'call-sharp' : 'call-outline'} size={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="[id]"
+        options={{
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="Cart"
+        options={{
+          tabBarItemStyle: { display: 'none' },
         }}
       />
     </Tabs>
