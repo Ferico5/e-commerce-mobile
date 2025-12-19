@@ -28,7 +28,7 @@ export default function Header() {
   return (
     <View className="justify-between items-center flex-row">
       {/* Image */}
-      <Link href={'/(tabs)/productDetail'} className="w-[35%]">
+      <Link href={'/index'} className="w-[35%]">
         <Image source={LogoIcon} resizeMode="contain" />
       </Link>
 
@@ -48,8 +48,7 @@ export default function Header() {
           <Image source={profileIcon} className="w-7 h-7" resizeMode="contain" />
         </Link>
 
-        {/* change this to /Cart after finish */}
-        <Link href={'/'}>
+        <Link href={'/Cart'}>
           {/* Cart Wrapper */}
           <View className="relative">
             <Image source={cartIcon} className="w-7 h-7" resizeMode="contain" />
