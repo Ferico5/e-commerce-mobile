@@ -53,7 +53,7 @@ export default function Auth() {
         if (response.data.msg === 'Login successful') {
           resetCart();
           fetchCartCount();
-          router.push('/(tabs)/productDetail');
+          router.push('/index');
         } else {
           alert(response.data.msg);
         }
