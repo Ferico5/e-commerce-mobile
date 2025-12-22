@@ -5,7 +5,7 @@ import ProductBox from '@/components/ProductBox';
 import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
 
@@ -29,6 +29,7 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState('');
   const [relatedProducts, setRelatedProducts] = useState<ProductDetailProps[]>([]);
   const { setCartCount, fetchCartCount } = useCart();
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -39,6 +40,12 @@ export default function ProductDetail() {
         const productData = res.data.singleProduct;
         setProduct(productData);
         setMainImage(productData.image[0]);
+
+        // scroll to top
+        scrollRef.current?.scrollTo({
+          y: 0,
+          animated: true,
+        });
       })
       .catch((err) => {
         console.error('Failed to fetch product:', err);
@@ -98,7 +105,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
+    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <Header />
 
       {!product ? (
