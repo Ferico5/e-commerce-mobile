@@ -4,7 +4,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import axios from '../utils/axiosInstance';
 
 export default function Auth() {
@@ -19,6 +19,7 @@ export default function Auth() {
     email: '',
     password: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateFields = () => {
     let newErrors = { name: '', email: '', password: '' };
@@ -47,13 +48,14 @@ export default function Auth() {
     if (!validateFields()) return;
 
     try {
+      setIsLoading(true);
       if (isLogin) {
         const response = await login(email, password);
 
         if (response.data.msg === 'Login successful') {
           resetCart();
           fetchCartCount();
-          router.push('/index');
+          router.push('/');
         } else {
           alert(response.data.msg);
         }
@@ -70,6 +72,8 @@ export default function Auth() {
       }
     } catch (error) {
       Alert.alert('Error logging in');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -130,8 +134,11 @@ export default function Auth() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={handleLogin} className="bg-black self-center px-9 py-3">
-          <Text className="text-white font-outfit">{isLogin ? 'Login' : 'Sign Up'}</Text>
+        <TouchableOpacity onPress={handleLogin} disabled={isLoading} className={`bg-black self-center px-9 py-3 items-center justify-center ${isLoading ? 'opacity-70' : ''}`}>
+          {/* for locked width */}
+          <Text className="text-white font-outfit opacity-0">{isLogin ? 'Login' : 'Sign Up'}</Text>
+
+          <View className="absolute">{isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white font-outfit px-9 py-3">{isLogin ? 'Login' : 'Sign Up'}</Text>}</View>
         </TouchableOpacity>
       </View>
       <Footer />
