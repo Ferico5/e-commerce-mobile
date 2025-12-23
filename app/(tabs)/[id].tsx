@@ -6,7 +6,7 @@ import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import axios from '../../utils/axiosInstance';
 
 const star = require('@/assets/frontend_assets/star_icon.png');
@@ -27,12 +27,17 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<ProductDetailProps | null>(null);
   const [mainImage, setMainImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<ProductDetailProps[]>([]);
   const { setCartCount, fetchCartCount } = useCart();
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (!id) return;
+
+    setProduct(null);
+    setMainImage('');
+    setSelectedSize('');
 
     axios
       .get(`/single/${id}`)
@@ -71,6 +76,7 @@ export default function ProductDetail() {
     if (!product) return;
 
     try {
+      setIsAddingToCart(true);
       const token = await AsyncStorage.getItem('token');
 
       if (!token) {
@@ -101,6 +107,8 @@ export default function ProductDetail() {
     } catch (error) {
       console.error('Failed to add to cart:', error);
       Alert.alert('Error', 'Failed to add item to cart');
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -174,8 +182,12 @@ export default function ProductDetail() {
           </View>
 
           {/* Add to Cart Button */}
-          <Pressable className="mt-9 border bg-black self-start" onPress={handleAddToCart}>
-            <Text className="px-8 py-3 text-sm text-white font-outfit">ADD TO CART</Text>
+          <Pressable className={`mt-9 border bg-black self-start items-center justify-center ${isAddingToCart ? 'opacity-70' : ''}`} onPress={handleAddToCart} disabled={isAddingToCart}>
+            {/* Invisible text to lock width */}
+            <Text className="px-8 py-3 text-sm text-white font-outfit opacity-0">ADD TO CART</Text>
+
+            {/* Overlay */}
+            <View className="absolute">{isAddingToCart ? <ActivityIndicator size="small" color="#fff" /> : <Text className="px-8 py-3 text-sm text-white font-outfit">ADD TO CART</Text>}</View>
           </Pressable>
 
           {/* 100% original product */}
