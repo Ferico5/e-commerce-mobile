@@ -4,7 +4,7 @@ import { ScrollView, Text, View } from 'react-native';
 
 export default function about() {
   return (
-    <ScrollView className='flex'>
+    <ScrollView className='flex' showsVerticalScrollIndicator={false}>
       <Header />
       <Text>About Page</Text>
       <Footer />

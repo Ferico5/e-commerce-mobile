@@ -4,7 +4,7 @@ import { ScrollView, Text, View } from 'react-native';
 
 export default function contact() {
   return (
-    <ScrollView className='flex'>
+    <ScrollView className='flex' showsVerticalScrollIndicator={false}>
       <Header />
       <Text>Contact Page</Text>
       <Footer />

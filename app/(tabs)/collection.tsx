@@ -104,7 +104,7 @@ export default function Collection() {
   };
 
   return (
-    <ScrollView className="flex">
+    <ScrollView className="flex" showsVerticalScrollIndicator={false}>
       <Header />
 
       {isSearchVisible && (
