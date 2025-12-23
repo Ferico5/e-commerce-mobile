@@ -90,7 +90,7 @@ export default function Index() {
         </View>
 
         {/* Image Hero */}
-        <Image source={heroImage} className="w-full h-[280] mt-12" resizeMode="contain" />
+        <Image source={heroImage} className="w-full h-[280] mt-12" resizeMode="cover" />
       </View>
 
       {/* Latest Collection */}
