@@ -28,7 +28,7 @@ export default function Header() {
   return (
     <View className="justify-between items-center flex-row">
       {/* Image */}
-      <Link href={'/index'} className="w-[35%]">
+      <Link href={'/'} className="w-[35%]">
         <Image source={LogoIcon} resizeMode="contain" />
       </Link>
 
