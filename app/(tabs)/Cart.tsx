@@ -1,10 +1,10 @@
+import { useAuth } from '@/auth/AuthContext';
 import { useCart } from '@/auth/CartContext';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import TitleBox from '@/components/TitleBox';
 import axios from '@/utils/axiosInstance';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect, router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
@@ -26,6 +26,7 @@ const Cart = () => {
   };
 
   const [cart, setCart] = useState<CartItem[]>([]);
+  const { user, authReady } = useAuth();
   const [subtotal, setSubtotal] = useState(0);
   const [shippingFee, setShippingFee] = useState(0);
   const [total, setTotal] = useState(0);
@@ -53,15 +54,15 @@ const Cart = () => {
   };
 
   const fetchCart = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
+    if (!authReady) return;
 
-      const res = await axios.get('/get-cart', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+    if (!user) {
+      setCart([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get('/get-cart');
 
       const cartArray = res.data.cartItems || [];
       setCart(cartArray);
@@ -82,7 +83,7 @@ const Cart = () => {
   useFocusEffect(
     useCallback(() => {
       fetchCart();
-    }, [])
+    }, [authReady, user])
   );
 
   useEffect(() => {
@@ -105,18 +106,10 @@ const Cart = () => {
 
     debounceTimeout.current[key] = setTimeout(async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) return;
-
-        await axios.put(
-          `/cart/${productId}`,
-          { quantity: newQty, size },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axios.put(`/cart/${productId}`, {
+          quantity: newQty,
+          size,
+        });
 
         fetchCartCount();
       } catch (err) {
@@ -131,14 +124,7 @@ const Cart = () => {
     try {
       setDeletingKey(key);
 
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
-
-      await axios.delete(`/cart/${productId}?size=${size}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(`/cart/${productId}?size=${size}`);
 
       await fetchCart();
       fetchCartCount();

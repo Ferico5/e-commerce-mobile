@@ -1,9 +1,9 @@
+import { useAuth } from '@/auth/AuthContext';
 import { useCart } from '@/auth/CartContext';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import ProductBox from '@/components/ProductBox';
 import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
@@ -30,6 +30,7 @@ export default function ProductDetail() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<ProductDetailProps[]>([]);
   const { setCartCount, fetchCartCount } = useCart();
+  const { user, authReady } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -73,21 +74,21 @@ export default function ProductDetail() {
   }, [product]);
 
   const handleAddToCart = async () => {
+    if (!authReady) return;
+    if (!user) {
+      router.push('/Auth');
+      return;
+    }
+
     if (!product) return;
+
+    if (!selectedSize) {
+      Alert.alert('Error', 'Please select a size first!');
+      return;
+    }
 
     try {
       setIsAddingToCart(true);
-      const token = await AsyncStorage.getItem('token');
-
-      if (!token) {
-        router.push('/Auth');
-        return;
-      }
-
-      if (!selectedSize) {
-        Alert.alert('Error', 'Please select a size first!');
-        return;
-      }
 
       const body = {
         productId: product._id,
@@ -95,13 +96,7 @@ export default function ProductDetail() {
         size: selectedSize,
       };
 
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      await axios.post('/add-cart', body, config);
+      await axios.post('/add-cart', body);
       await fetchCartCount();
       Alert.alert('Success', 'Item added to cart!');
     } catch (error) {

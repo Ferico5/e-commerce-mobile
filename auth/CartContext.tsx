@@ -1,6 +1,6 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import axios from '../utils/axiosInstance';
+import { useAuth } from './AuthContext';
 
 type CartContextProps = {
   cartCount: number;
@@ -13,15 +13,18 @@ const CartContext = createContext<CartContextProps | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartCount, setCartCount] = useState<number>(0);
+  const { user, authReady } = useAuth();
 
   const fetchCartCount = async () => {
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) return;
+    if (!authReady) return;
 
-      const response = await axios.get('/get-cart', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    if (!user) {
+      setCartCount(0);
+      return;
+    }
+
+    try {
+      const response = await axios.get('/get-cart');
 
       const items = response.data.cartItems || [];
       const total = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
@@ -35,8 +38,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const resetCart = () => setCartCount(0);
 
   useEffect(() => {
-    fetchCartCount();
-  }, []);
+    if (authReady) {
+      fetchCartCount();
+    }
+  }, [authReady, user]);
 
   return <CartContext.Provider value={{ cartCount, setCartCount, fetchCartCount, resetCart }}>{children}</CartContext.Provider>;
 };
