@@ -1,84 +1,67 @@
 import { useAuth } from '@/auth/AuthContext';
-import { useCart } from '@/auth/CartContext';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import ProductBox from '@/components/ProductBox';
 import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
+import { addToCart } from '@/queries/cart';
+import { fetchProductDetail, fetchRelatedProducts, ProductProps } from '@/queries/products';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import axios from '../../utils/axiosInstance';
 
 const star = require('@/assets/frontend_assets/star_icon.png');
 const star_dull = require('@/assets/frontend_assets/star_dull_icon.png');
 
-type ProductDetailProps = {
-  _id: string;
-  id: string;
-  name: string;
-  price: number;
-  image: string[];
-  sizes: string;
-  category: string;
-};
-
 export default function ProductDetail() {
-  const { id } = useLocalSearchParams();
-  const [product, setProduct] = useState<ProductDetailProps | null>(null);
+  const { id } = useLocalSearchParams<{ id: string }>();
   const [mainImage, setMainImage] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
-  const [isAddingToCart, setIsAddingToCart] = useState(false);
-  const [relatedProducts, setRelatedProducts] = useState<ProductDetailProps[]>([]);
-  const { setCartCount, fetchCartCount } = useCart();
   const { user, authReady } = useAuth();
   const scrollRef = useRef<ScrollView>(null);
+  const queryClient = useQueryClient();
+
+  // product detail query
+  const {
+    data: product,
+    isLoading,
+    isError,
+  } = useQuery<ProductProps>({
+    queryKey: ['product', id],
+    queryFn: () => fetchProductDetail(id!),
+    enabled: !!id,
+  });
+
+  if (isError) {
+    Alert.alert('Error', 'Failed to load product detail.');
+  }
 
   useEffect(() => {
-    if (!id) return;
+    if (!product) return;
 
-    setProduct(null);
-    setMainImage('');
+    setMainImage(product.image[0]);
     setSelectedSize('');
-
-    axios
-      .get(`/single/${id}`)
-      .then((res) => {
-        const productData = res.data.singleProduct;
-        setProduct(productData);
-        setMainImage(productData.image[0]);
-
-        // scroll to top
-        scrollRef.current?.scrollTo({
-          y: 0,
-          animated: true,
-        });
-      })
-      .catch((err) => {
-        console.error('Failed to fetch product:', err);
-        Alert.alert('Error', 'Failed to load product');
-      });
-  }, [id]);
-
-  useEffect(() => {
-    if (product?.category) {
-      axios
-        .get(`/products?category=${product.category}`)
-        .then((res) => {
-          const filtered = res.data.products.filter((p: ProductDetailProps) => p._id !== product._id);
-          setRelatedProducts(filtered.slice(0, 5));
-        })
-        .catch((err) => {
-          console.error('Failed to fetch related products:', err);
-        });
-    }
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [product]);
+
+  // related product query
+  const { data: relatedProducts = [] } = useQuery<ProductProps[]>({
+    queryKey: ['related_products', product?.category, product?._id],
+    queryFn: () => fetchRelatedProducts(product!.category, product!._id),
+    enabled: !!product?.category && !!product?._id,
+  });
+
+  const addToCartMutation = useMutation({
+    mutationFn: addToCart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      Alert.alert('Success', 'Item added to cart!');
+    },
+  });
 
   const handleAddToCart = async () => {
     if (!authReady) return;
-    if (!user) {
-      router.push('/Auth');
-      return;
-    }
+    if (!user) return router.push('/Auth');
 
     if (!product) return;
 
@@ -87,31 +70,20 @@ export default function ProductDetail() {
       return;
     }
 
-    try {
-      setIsAddingToCart(true);
-
-      const body = {
-        productId: product._id,
-        quantity: 1,
-        size: selectedSize,
-      };
-
-      await axios.post('/add-cart', body);
-      await fetchCartCount();
-      Alert.alert('Success', 'Item added to cart!');
-    } catch (error) {
-      console.error('Failed to add to cart:', error);
-      Alert.alert('Error', 'Failed to add item to cart');
-    } finally {
-      setIsAddingToCart(false);
-    }
+    addToCartMutation.mutate({
+      productId: product._id,
+      quantity: 1,
+      size: selectedSize,
+    });
   };
+
+  const isAddingToCart = addToCartMutation.isPending;
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <Header />
 
-      {!product ? (
+      {!product || isLoading ? (
         <ProductDetailSkeleton />
       ) : (
         <>

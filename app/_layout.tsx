@@ -3,8 +3,11 @@ import { CartProvider } from '@/auth/CartContext';
 import '@/global.css';
 import { Outfit_400Regular } from '@expo-google-fonts/outfit';
 import { Prata_400Regular } from '@expo-google-fonts/prata';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -15,31 +18,33 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: {
-              backgroundColor: '#fff',
-              paddingTop: 60,
-            },
-          }}
-        >
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="Auth"
-            options={{
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CartProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
               contentStyle: {
                 backgroundColor: '#fff',
                 paddingTop: 60,
-                paddingHorizontal: 20, // khusus Auth page
               },
             }}
-          />
-          <Stack.Screen name="[...missing]" />
-        </Stack>
-      </CartProvider>
-    </AuthProvider>
+          >
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="Auth"
+              options={{
+                contentStyle: {
+                  backgroundColor: '#fff',
+                  paddingTop: 60,
+                  paddingHorizontal: 20, // khusus Auth page
+                },
+              }}
+            />
+            <Stack.Screen name="[...missing]" />
+          </Stack>
+        </CartProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

@@ -4,26 +4,17 @@ import Header from '@/components/Header';
 import ProductBox from '@/components/ProductBox';
 import ProductSkeleton from '@/components/ProductSkeleton';
 import TitleBox from '@/components/TitleBox';
-import axios from '@/utils/axiosInstance';
+import { fetchProducts } from '@/queries/products';
+import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 
 const Search = require('@/assets/frontend_assets/search_icon.png');
 const Close = require('@/assets/frontend_assets/cross_icon.png');
 
-type ProductProps = {
-  _id: string;
-  name: string;
-  price: number;
-  category: string;
-  subCategory: string;
-  image: string[];
-};
-
 export default function Collection() {
-  const [products, setProducts] = useState<ProductProps[]>([]);
   const [sortOption, setSortOption] = useState('Relevent');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
@@ -32,7 +23,6 @@ export default function Collection() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [openFilters, setOpenFilters] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string | null>(sortOption);
   const [items, setItems] = useState([
@@ -41,20 +31,20 @@ export default function Collection() {
     { label: 'Sort by: High to Low', value: 'HighToLow' },
   ]);
 
-  useEffect(() => {
-    axios
-      .get('/list')
-      .then((response) => {
-        setProducts(response.data.listProduct);
-      })
-      .catch((error) => {
-        console.error('Error fetching products:', error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
 
+  if (isError) {
+    Alert.alert('Error', 'Failed to load products.');
+  }
+
+  // debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -169,7 +159,7 @@ export default function Collection() {
       <View className="flex-row flex-wrap justify-between mt-5">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <ProductSkeleton key={i} />)
-          : getSortedProducts().map((product: ProductProps) => <ProductBox key={product._id} id={product._id} image={optimizeCloudinaryUrl(product.image[0])} name={product.name} price={product.price} />)}
+          : getSortedProducts().map((product) => <ProductBox key={product._id} id={product._id} image={optimizeCloudinaryUrl(product.image[0])} name={product.name} price={product.price} />)}
       </View>
 
       <Footer />

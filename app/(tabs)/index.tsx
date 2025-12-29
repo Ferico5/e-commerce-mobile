@@ -5,9 +5,9 @@ import ProductSkeleton from '@/components/ProductSkeleton';
 import SubscribeBox from '@/components/SubscribeBox';
 import TitleBox from '@/components/TitleBox';
 import WhyUs from '@/components/WhyUs';
-import { useEffect, useState } from 'react';
+import { fetchProducts } from '@/queries/products';
+import { useQuery } from '@tanstack/react-query';
 import { Alert, Image, ScrollView, Text, View } from 'react-native';
-import axios from '../../utils/axiosInstance';
 
 const heroImage = require('@/assets/frontend_assets/hero_img.png');
 const exchangeIcon = require('@/assets/frontend_assets/exchange_icon.png');
@@ -15,66 +15,25 @@ const qualityIcon = require('@/assets/frontend_assets/quality_icon.png');
 const supportIcon = require('@/assets/frontend_assets/support_img.png');
 
 export default function Index() {
-  interface Product {
-    _id: string;
-    name: string;
-    description: string;
-    price: number;
-    image: string[];
-    category: string;
-    subCategory: string;
-    sizes: string[];
-    bestSeller: boolean;
-    date: string;
-    __v?: number;
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
+
+  if (isError) {
+    Alert.alert('Error', 'Failed to load products.');
   }
 
-  const [lastCollectionList, setLastCollectionList] = useState<Product[]>([]);
-  const [bestSellerList, setBestSellerList] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const lastCollectionList = [...products].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
 
-  useEffect(() => {
-    const fetchLatestProducts = async () => {
-      try {
-        const res = await axios.get('/list');
-        const data = res.data;
-
-        if (data.listProduct) {
-          const sorted = [...data.listProduct].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setLastCollectionList(sorted.slice(0, 10));
-        }
-      } catch (error) {
-        console.log('Error fetching products:', error);
-        Alert.alert('Error', 'Failed to load products.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchLatestProducts();
-  }, []);
-
-  useEffect(() => {
-    const fetchBestSellers = async () => {
-      try {
-        const res = await axios.get('/list');
-        const data = res.data;
-
-        if (data.listProduct) {
-          const bestSeller = data.listProduct
-            .filter((item: Product) => item.bestSeller === true)
-            .sort((a: Product, b: Product) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 5);
-          setBestSellerList(bestSeller);
-        }
-      } catch (error) {
-        console.log('Error fetching products:', error);
-        Alert.alert('Error', 'Failed to load products.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchBestSellers();
-  }, []);
+  const bestSellerList = products
+    .filter((item) => item.bestSeller)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5);
 
   return (
     <ScrollView className="flex" showsVerticalScrollIndicator={false}>

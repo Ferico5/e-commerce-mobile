@@ -1,7 +1,8 @@
+import { loginRequest } from '@/queries/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as SecureStore from 'expo-secure-store';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import axios from '../utils/axiosInstance';
 
 type UserProps = {
   id: string;
@@ -13,9 +14,10 @@ type UserProps = {
 type AuthContextProps = {
   token: string | null;
   user: UserProps | null;
-  login: (email: string, password: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   authReady: boolean;
+  isLoggingIn: boolean;
 };
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -24,29 +26,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserProps | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const queryClient = useQueryClient();
 
-  //   Load data login saat app pertama kali dibuka
+  // load stored auth
   useEffect(() => {
-    const loadStoredAuth = async () => {
-      try {
-        const savedToken = await SecureStore.getItemAsync('token');
-        const savedUser = await AsyncStorage.getItem('user');
+    const load = async () => {
+      const savedToken = await SecureStore.getItemAsync('token');
+      const savedUser = await AsyncStorage.getItem('user');
 
-        if (savedToken && savedUser) {
-          setToken(savedToken);
-          setUser(JSON.parse(savedUser));
-        }
-      } finally {
-        setAuthReady(true);
+      if (savedToken && savedUser) {
+        setToken(savedToken);
+        setUser(JSON.parse(savedUser));
       }
+      setAuthReady(true);
     };
-
-    loadStoredAuth();
+    load();
   }, []);
 
-  //   Simpan data login setiap kali token/user berubah
+  // sync auth
   useEffect(() => {
-    const syncAuth = async () => {
+    const sync = async () => {
       if (token && user) {
         await SecureStore.setItemAsync('token', token);
         await AsyncStorage.setItem('user', JSON.stringify(user));
@@ -55,36 +54,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await AsyncStorage.removeItem('user');
       }
     };
-
-    syncAuth();
+    sync();
   }, [token, user]);
 
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await axios.post('/auth', { email, password });
+  const loginMutation = useMutation({
+    mutationFn: loginRequest,
+    onSuccess: (data) => {
+      setToken(data.token);
+      setUser(data.user);
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
 
-      if (response.data.token) {
-        setToken(response.data.token);
-        setUser(response.data.user);
-      }
-      return response;
-    } catch (error: any) {
-      return error.response || { data: { msg: 'Server error' } };
-    }
+  const login = async (email: string, password: string) => {
+    await loginMutation.mutateAsync({ email, password });
   };
 
   const logout = async () => {
     setToken(null);
     setUser(null);
-    await SecureStore.deleteItemAsync('token');
-    await AsyncStorage.removeItem('user');
+    queryClient.setQueryData(['cart'], []);
+    queryClient.removeQueries({ queryKey: ['cart'] });
   };
 
-  return <AuthContext.Provider value={{ token, user, authReady, login, logout }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        authReady,
+        login,
+        logout,
+        isLoggingIn: loginMutation.isPending,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used inside AuthProvider! Contact the Developer!');
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  return ctx;
 };

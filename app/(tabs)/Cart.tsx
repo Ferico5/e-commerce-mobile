@@ -1,96 +1,57 @@
 import { useAuth } from '@/auth/AuthContext';
-import { useCart } from '@/auth/CartContext';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import TitleBox from '@/components/TitleBox';
-import axios from '@/utils/axiosInstance';
-import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { deleteCartItem, fetchCart, updateCartQty } from '@/queries/cart';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 const binIcon = require('@/assets/frontend_assets/bin_icon.png');
 
+type QuantityMap = Record<string, number>;
+type InputMap = Record<string, string>;
+
 const Cart = () => {
-  type CartItem = {
-    _id: string;
-    productId: string;
-    image: string;
-    name: string;
-    size: string;
-    price: number;
-    quantity: number;
-  };
-
-  type QuantityMap = {
-    [key: string]: number;
-  };
-
-  const [cart, setCart] = useState<CartItem[]>([]);
   const { user, authReady } = useAuth();
-  const [subtotal, setSubtotal] = useState(0);
-  const [shippingFee, setShippingFee] = useState(0);
-  const [total, setTotal] = useState(0);
+  const queryClient = useQueryClient();
   const [quantityMap, setQuantityMap] = useState<QuantityMap>({});
   const debounceTimeout = useRef<Record<string, NodeJS.Timeout | number>>({});
-  const { fetchCartCount } = useCart();
-  const [inputMap, setInputMap] = useState<Record<string, string>>({}); // for allow typing qty
+  const [inputMap, setInputMap] = useState<InputMap>({});
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
-  const calculateTotals = (cartItems: CartItem[], qtyMap: QuantityMap) => {
-    let sub = 0;
-
-    cartItems.forEach((item: CartItem) => {
-      const key = `${item.productId}_${item.size}`;
-      const quantity = qtyMap[key] || item.quantity || 1;
-      sub += item.price * quantity;
-    });
-
-    const shipping = Math.ceil(sub * 0.1);
-    const total = sub + shipping;
-
-    setSubtotal(sub);
-    setShippingFee(shipping);
-    setTotal(total);
-  };
-
-  const fetchCart = async () => {
-    if (!authReady) return;
-
-    if (!user) {
-      setCart([]);
-      return;
-    }
-
-    try {
-      const res = await axios.get('/get-cart');
-
-      const cartArray = res.data.cartItems || [];
-      setCart(cartArray);
-
-      const newQuantityMap: QuantityMap = {};
-      cartArray.forEach((item: CartItem) => {
-        const key = `${item.productId}_${item.size}`;
-        newQuantityMap[key] = item.quantity;
-      });
-
-      setQuantityMap(newQuantityMap);
-      calculateTotals(cartArray, newQuantityMap);
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchCart();
-    }, [authReady, user])
-  );
+  const { data: cart = [] } = useQuery({
+    queryKey: ['cart'],
+    queryFn: fetchCart,
+    enabled: authReady && !!user,
+  });
 
   useEffect(() => {
-    if (cart.length > 0) {
-      calculateTotals(cart, quantityMap);
-    }
-  }, [quantityMap]);
+    if (!cart.length) return;
+
+    const map: QuantityMap = {};
+    cart.forEach((item) => {
+      map[`${item.productId}_${item.size}`] = item.quantity;
+    });
+
+    setQuantityMap(map);
+  }, [cart]);
+
+  const updateQtyMutation = useMutation({
+    mutationFn: ({ productId, size, quantity }: { productId: string; size: string; quantity: number }) => updateCartQty(productId, size, quantity),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: ({ productId, size }: { productId: string; size: string }) => deleteCartItem(productId, size),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+    onSettled: () => setDeletingKey(null),
+  });
 
   const handleQuantityChange = async (productId: string, size: string, newQty: number) => {
     if (newQty < 1 || Number.isNaN(newQty)) return;
@@ -104,36 +65,32 @@ const Cart = () => {
 
     clearTimeout(debounceTimeout.current[key]);
 
-    debounceTimeout.current[key] = setTimeout(async () => {
-      try {
-        await axios.put(`/cart/${productId}`, {
-          quantity: newQty,
-          size,
-        });
-
-        fetchCartCount();
-      } catch (err) {
-        console.error('Error updating cart:', err);
-      }
+    debounceTimeout.current[key] = setTimeout(() => {
+      updateQtyMutation.mutate({ productId, size, quantity: newQty });
     }, 600);
   };
 
-  const handleDelete = async (productId: string, size: string) => {
+  const handleDelete = (productId: string, size: string) => {
     const key = `${productId}_${size}`;
-
-    try {
-      setDeletingKey(key);
-
-      await axios.delete(`/cart/${productId}?size=${size}`);
-
-      await fetchCart();
-      fetchCartCount();
-    } catch (error) {
-      console.error('Error deleting cart item:', error);
-    } finally {
-      setDeletingKey(null);
-    }
+    setDeletingKey(key);
+    deleteMutation.mutate({ productId, size });
   };
+
+  const { subtotal, shippingFee, total } = useMemo(() => {
+    let sub = 0;
+    cart.forEach((item) => {
+      const key = `${item.productId}_${item.size}`;
+      const qty = quantityMap[key] ?? item.quantity;
+      sub += item.price * qty;
+    });
+
+    const shipping = Math.ceil(sub * 0.1);
+    return {
+      subtotal: sub,
+      shippingFee: shipping,
+      total: sub + shipping,
+    };
+  }, [cart, quantityMap]);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>

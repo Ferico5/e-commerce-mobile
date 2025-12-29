@@ -1,15 +1,14 @@
 import { useAuth } from '@/auth/AuthContext';
-import { useCart } from '@/auth/CartContext';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
+import { signUpRequest } from '@/queries/auth';
+import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import axios from '../utils/axiosInstance';
 
 export default function Auth() {
-  const { login } = useAuth();
-  const { fetchCartCount, resetCart } = useCart();
+  const { login, isLoggingIn } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -19,7 +18,6 @@ export default function Auth() {
     email: '',
     password: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   const validateFields = () => {
     let newErrors = { name: '', email: '', password: '' };
@@ -44,38 +42,33 @@ export default function Auth() {
     return isValid;
   };
 
-  const handleLogin = async () => {
+  const signUpMutation = useMutation({
+    mutationFn: signUpRequest,
+    onSuccess: () => {
+      Alert.alert('Success', 'Account created. Please login.');
+      setIsLogin(true);
+      setName('');
+      setEmail('');
+      setPassword('');
+    },
+  });
+
+  const handleSubmit = async () => {
     if (!validateFields()) return;
 
     try {
-      setIsLoading(true);
       if (isLogin) {
-        const response = await login(email, password);
-
-        if (response.data.msg === 'Login successful') {
-          resetCart();
-          fetchCartCount();
-          router.push('/');
-        } else {
-          alert(response.data.msg);
-        }
+        await login(email, password);
+        router.replace('/');
       } else {
-        const res = await axios.post('/users', { name, email, password });
-
-        if (res.data.msg === 'User created!') {
-          setIsLogin(true);
-          setName('');
-          setEmail('');
-          setPassword('');
-          setErrors({ name: '', email: '', password: '' });
-        }
+        signUpMutation.mutate({ name, email, password });
       }
-    } catch (error) {
-      Alert.alert('Error logging in');
-    } finally {
-      setIsLoading(false);
+    } catch {
+      Alert.alert('Error', 'Authentication failed');
     }
   };
+
+  const loading = isLoggingIn || signUpMutation.isPending;
 
   return (
     <ScrollView className="flex flex-col" showsVerticalScrollIndicator={false}>
@@ -134,11 +127,11 @@ export default function Auth() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={handleLogin} disabled={isLoading} className={`bg-black self-center px-9 py-3 items-center justify-center ${isLoading ? 'opacity-70' : ''}`}>
+        <TouchableOpacity onPress={handleSubmit} disabled={loading} className={`bg-black self-center px-9 py-3 items-center justify-center ${loading ? 'opacity-70' : ''}`}>
           {/* for locked width */}
           <Text className="text-white font-outfit opacity-0">{isLogin ? 'Login' : 'Sign Up'}</Text>
 
-          <View className="absolute">{isLoading ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white font-outfit px-9 py-3">{isLogin ? 'Login' : 'Sign Up'}</Text>}</View>
+          <View className="absolute">{loading ? <ActivityIndicator size="small" color="#fff" /> : <Text className="text-white font-outfit px-9 py-3">{isLogin ? 'Login' : 'Sign Up'}</Text>}</View>
         </TouchableOpacity>
       </View>
       <Footer />

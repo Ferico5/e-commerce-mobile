@@ -2,18 +2,12 @@ import { useAuth } from '@/auth/AuthContext';
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import TitleBox from '@/components/TitleBox';
-import axios from '@/utils/axiosInstance';
-import { useEffect, useState } from 'react';
+import { fetchCart } from '@/queries/cart';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 
 export default function PlaceOrder() {
-  type CartItemProps = {
-    productId: string;
-    price: number;
-    quantity: number;
-    size?: string;
-  };
-
   const { user, authReady } = useAuth();
 
   const [name, setName] = useState('');
@@ -25,13 +19,6 @@ export default function PlaceOrder() {
   const [country, setCountry] = useState('');
   const [phone, setPhone] = useState('');
 
-  const [subtotal, setSubtotal] = useState(0);
-  const [shippingFee, setShippingFee] = useState(0);
-  const [total, setTotal] = useState(0);
-
-  const [cartItems, setCartItems] = useState<CartItemProps[]>([]);
-  const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     if (user) {
       setName(user.name);
@@ -39,32 +26,28 @@ export default function PlaceOrder() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (!authReady || !user) return;
+  const { data: cart = [] } = useQuery({
+    queryKey: ['cart'],
+    queryFn: fetchCart,
+    enabled: authReady && !!user,
+  });
 
-    axios
-      .get('/get-cart')
-      .then((response) => {
-        const cartItems: CartItemProps[] = response.data.cartItems || [];
+  const { subtotal, shippingFee, total } = useMemo(() => {
+    let sub = 0;
 
-        let sub = 0;
-        cartItems.forEach((item) => {
-          const quantity = item.quantity || 1;
-          sub += item.price * quantity;
-        });
+    cart.forEach((item) => {
+      const qty = item.quantity || 1;
+      sub += item.price * qty;
+    });
 
-        const shipping = Math.ceil(sub * 0.1);
-        const total = sub + shipping;
+    const shipping = Math.ceil(sub * 0.1);
 
-        setSubtotal(sub);
-        setShippingFee(shipping);
-        setTotal(total);
-        setCartItems(cartItems);
-      })
-      .catch((error) => {
-        console.error('Error fetching cart for totals:', error);
-      });
-  }, [authReady, user]);
+    return {
+      subtotal: sub,
+      shippingFee: shipping,
+      total: sub + shipping,
+    };
+  }, [cart]);
 
   // const handlePlaceOrder = async () => {
   //   if (loading) return;
