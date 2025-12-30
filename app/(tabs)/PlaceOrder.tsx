@@ -3,9 +3,11 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import TitleBox from '@/components/TitleBox';
 import { fetchCart } from '@/queries/cart';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+
+import { createOrder } from '@/queries/order';
 
 export default function PlaceOrder() {
   const { user, authReady } = useAuth();
@@ -18,6 +20,7 @@ export default function PlaceOrder() {
   const [zipcode, setZipcode] = useState('');
   const [country, setCountry] = useState('');
   const [phone, setPhone] = useState('');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (user) {
@@ -49,40 +52,55 @@ export default function PlaceOrder() {
     };
   }, [cart]);
 
-  // const handlePlaceOrder = async () => {
-  //   if (loading) return;
-  //   setLoading(true);
-  //   try {
-  //     if (!name || !email || !street || !city || !state || !zipcode || !country || !phone) {
-  //       toast.error('Please fill in all delivery information.');
-  //       return;
-  //     }
+  const placeOrderMutation = useMutation({
+    mutationFn: createOrder,
+    onSuccess: async (data) => {
+      console.log('Order response:', data);
+      try {
+        if (!data?.redirect_url) {
+          Alert.alert('Redirect URL not found');
+          return;
+        }
 
-  //     const response = await axios.post('/create-order', {
-  //       userId: user._id,
-  //       items: cartItems,
-  //       paymentMethod: 'bca',
-  //       street,
-  //       city,
-  //       state,
-  //       zipcode,
-  //       country,
-  //       phone,
-  //     });
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
 
-  //     if (response.data.success) {
-  //       const redirectUrl = response.data.redirect_url;
-  //       window.location.href = redirectUrl;
-  //     } else {
-  //       toast.error('Failed to place order: ' + response.data.message);
-  //     }
-  //   } catch (err) {
-  //     console.error('Failed to place order:', err);
-  //     toast.error('Failed to place order.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+        console.log('Opening payment URL:', data.redirect_url);
+
+        await Linking.openURL(data.redirect_url);
+      } catch (err) {
+        console.error('Linking error:', err);
+        Alert.alert('Failed to open payment page');
+      }
+    },
+    onError: (error: any) => {
+      console.error('Create order error:', error);
+      Alert.alert('Order failed');
+    },
+  });
+
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      Alert.alert('Please login first');
+      return;
+    }
+
+    if (!name || !email || !street || !city || !state || !zipcode || !country || !phone) {
+      Alert.alert('Please fill in all delivery information.');
+      return;
+    }
+
+    placeOrderMutation.mutate({
+      userId: user._id,
+      items: cart,
+      paymentMethod: 'bca',
+      street,
+      city,
+      state,
+      zipcode,
+      country,
+      phone,
+    });
+  };
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
@@ -137,9 +155,9 @@ export default function PlaceOrder() {
           <Text className="font-outfit">Rp {total.toLocaleString('id-ID')}</Text>
         </View>
 
-        {/* <Pressable onPress={() => router.push('/PlaceOrder')} disabled={cart.length === 0} className={`px-6 py-3 mt-5 self-end ${cart.length === 0 ? 'bg-gray-400' : 'bg-black'}`}>
-          <Text className="font-outfit text-white">PROCEED TO CHECKOUT</Text>
-        </Pressable> */}
+        <Pressable onPress={handlePlaceOrder} disabled={cart.length === 0 || placeOrderMutation.isPending} className={`px-6 py-3 mt-5 self-end ${cart.length === 0 || placeOrderMutation.isPending ? 'bg-gray-400' : 'bg-black'}`}>
+          <Text className="font-outfit text-white">{placeOrderMutation.isPending ? 'PROCESSING...' : 'PLACE ORDER'}</Text>
+        </Pressable>
       </View>
 
       <Footer />
