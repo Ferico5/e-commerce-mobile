@@ -31,6 +31,12 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="order"
+        options={{
+          tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'bag-check' : 'bag-check-outline'} size={24} />,
+        }}
+      />
+      <Tabs.Screen
         name="about"
         options={{
           tabBarIcon: ({ focused }) => <Ionicons name={focused ? 'information-circle-sharp' : 'information-circle-outline'} size={24} />,
@@ -56,6 +62,12 @@ export default function TabsLayout() {
       />
       <Tabs.Screen
         name="PlaceOrder"
+        options={{
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tabs.Screen
+        name="orderDetail"
         options={{
           tabBarItemStyle: { display: 'none' },
         }}
