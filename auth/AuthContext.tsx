@@ -5,7 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 type UserProps = {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role?: string;
