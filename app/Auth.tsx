@@ -1,8 +1,8 @@
-import { useAuth } from '@/auth/AuthContext';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import { signUpRequest } from '@/queries/auth';
-import { useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
+import { useSignUp } from '@/features/auth/hooks';
+import { loginSchema, signUpSchema } from '@/features/auth/schema';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -19,42 +19,45 @@ export default function Auth() {
     password: '',
   });
 
-  const validateFields = () => {
-    let newErrors = { name: '', email: '', password: '' };
-    let isValid = true;
+  const validate = () => {
+    if (isLogin) {
+      const result = loginSchema.safeParse({ email, password });
 
-    if (!email.trim()) {
-      newErrors.email = 'Email is required';
-      isValid = false;
+      if (!result.success) {
+        const fe = result.error.flatten().fieldErrors;
+        setErrors({
+          name: '',
+          email: fe.email?.[0] ?? '',
+          password: fe.password?.[0] ?? '',
+        });
+        return false;
+      }
+
+      setErrors({ name: '', email: '', password: '' });
+      return true;
     }
 
-    if (!password.trim()) {
-      newErrors.password = 'Password is required';
-      isValid = false;
+    // signup
+    const result = signUpSchema.safeParse({ name, email, password });
+
+    if (!result.success) {
+      const fe = result.error.flatten().fieldErrors;
+      setErrors({
+        name: fe.name?.[0] ?? '',
+        email: fe.email?.[0] ?? '',
+        password: fe.password?.[0] ?? '',
+      });
+      return false;
     }
 
-    if (!isLogin && !name.trim()) {
-      newErrors.name = 'Name is required';
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
+    setErrors({ name: '', email: '', password: '' });
+    return true;
   };
 
-  const signUpMutation = useMutation({
-    mutationFn: signUpRequest,
-    onSuccess: () => {
-      Alert.alert('Success', 'Account created. Please login.');
-      setIsLogin(true);
-      setName('');
-      setEmail('');
-      setPassword('');
-    },
-  });
+  const signUpMutation = useSignUp();
 
   const handleSubmit = async () => {
-    if (!validateFields()) return;
+    if (!validate()) return;
 
     try {
       if (isLogin) {

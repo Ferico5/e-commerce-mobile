@@ -1,12 +1,11 @@
-import { useAuth } from '@/auth/AuthContext';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import OrderSkeleton from '@/components/OrderSkeleton';
-import TitleBox from '@/components/TitleBox';
-import { fetchOrders } from '@/queries/order';
-import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
+import { useFetchOrders } from '@/features/order/hooks';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
+import OrderSkeleton from '@/shared/components/OrderSkeleton';
+import TitleBox from '@/shared/components/TitleBox';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 
 const PAGE_SIZE = 5;
@@ -17,35 +16,24 @@ export default function Order() {
 
   const [page, setPage] = useState(1);
 
-  const {
-    data: orders = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['orders', userId],
-    queryFn: () => fetchOrders(userId!),
-    enabled: !!userId,
-  });
+  const { data: orders = [], isLoading, isError } = useFetchOrders(userId);
 
-  if (isError) {
-    Alert.alert('Failed to fetch orders');
-  }
-
-  const sortedOrders = useMemo(() => {
-    return [...orders].sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    });
-  }, [orders]);
+  useEffect(() => {
+    if (isError) {
+      Alert.alert('Failed to fetch orders');
+    }
+  }, [isError]);
 
   const visibleOrders = useMemo(() => {
-    return sortedOrders.slice(0, page * PAGE_SIZE);
-  }, [sortedOrders, page]);
+    return orders.slice(0, page * PAGE_SIZE);
+  }, [orders, page]);
 
-  const hasMore = visibleOrders.length < sortedOrders.length;
+  const hasMore = visibleOrders.length < orders.length;
 
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
+      // for pagination
       onScroll={({ nativeEvent }) => {
         const isBottom = nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >= nativeEvent.contentSize.height - 20;
 

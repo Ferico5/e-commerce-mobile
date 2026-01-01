@@ -1,6 +1,6 @@
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import { ScrollView, Text, View } from 'react-native';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
+import { ScrollView, Text } from 'react-native';
 
 export default function OrderDetail() {
   return (

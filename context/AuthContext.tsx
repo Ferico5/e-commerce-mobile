@@ -1,10 +1,10 @@
-import { loginRequest } from '@/queries/auth';
+import { useLogin } from '@/features/auth/hooks';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import * as SecureStore from 'expo-secure-store';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
-type UserProps = {
+type User = {
   _id: string;
   name: string;
   email: string;
@@ -12,21 +12,23 @@ type UserProps = {
 };
 
 type AuthContextProps = {
+  user: User | null;
   token: string | null;
-  user: UserProps | null;
+  authReady: boolean;
+  isAuthenticated: boolean;
+  isLoggingIn: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  authReady: boolean;
-  isLoggingIn: boolean;
 };
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<UserProps | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const queryClient = useQueryClient();
+  const loginMutation = useLogin();
 
   // load stored auth
   useEffect(() => {
@@ -57,17 +59,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sync();
   }, [token, user]);
 
-  const loginMutation = useMutation({
-    mutationFn: loginRequest,
-    onSuccess: (data) => {
-      setToken(data.token);
-      setUser(data.user);
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    },
-  });
-
   const login = async (email: string, password: string) => {
-    await loginMutation.mutateAsync({ email, password });
+    const res = await loginMutation.mutateAsync({ email, password });
+    setToken(res.token);
+    setUser(res.user);
+    queryClient.invalidateQueries({ queryKey: ['cart'] });
   };
 
   const logout = async () => {
@@ -86,6 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         login,
         logout,
         isLoggingIn: loginMutation.isPending,
+        isAuthenticated: !!token,
       }}
     >
       {children}

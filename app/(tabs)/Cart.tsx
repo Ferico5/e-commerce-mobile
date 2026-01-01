@@ -1,59 +1,39 @@
-import { useAuth } from '@/auth/AuthContext';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import TitleBox from '@/components/TitleBox';
-import { deleteCartItem, fetchCart, updateCartQty } from '@/queries/cart';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
+import { useDeleteCartItem, useFetchCart, useUpdateCartQty } from '@/features/cart/hooks';
+import { calculateCartTotals } from '@/features/cart/utils';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
+import TitleBox from '@/shared/components/TitleBox';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-const binIcon = require('@/assets/frontend_assets/bin_icon.png');
+import binIcon from '@/assets/frontend_assets/bin_icon.png';
 
 type QuantityMap = Record<string, number>;
 type InputMap = Record<string, string>;
 
-const Cart = () => {
+export default function Cart() {
   const { user, authReady } = useAuth();
-  const queryClient = useQueryClient();
+
+  const { data: cart = [] } = useFetchCart(authReady && !!user);
+  const updateQtyMutation = useUpdateCartQty();
+  const deleteMutation = useDeleteCartItem();
+
   const [quantityMap, setQuantityMap] = useState<QuantityMap>({});
   const debounceTimeout = useRef<Record<string, NodeJS.Timeout | number>>({});
   const [inputMap, setInputMap] = useState<InputMap>({});
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
 
-  const { data: cart = [] } = useQuery({
-    queryKey: ['cart'],
-    queryFn: fetchCart,
-    enabled: authReady && !!user,
-  });
-
   useEffect(() => {
-    if (!cart.length) return;
-
     const map: QuantityMap = {};
     cart.forEach((item) => {
       map[`${item.productId}_${item.size}`] = item.quantity;
     });
-
     setQuantityMap(map);
   }, [cart]);
 
-  const updateQtyMutation = useMutation({
-    mutationFn: ({ productId, size, quantity }: { productId: string; size: string; quantity: number }) => updateCartQty(productId, size, quantity),
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: ({ productId, size }: { productId: string; size: string }) => deleteCartItem(productId, size),
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-    },
-    onSettled: () => setDeletingKey(null),
-  });
-
-  const handleQuantityChange = async (productId: string, size: string, newQty: number) => {
+  const handleQuantityChange = (productId: string, size: string, newQty: number) => {
     if (newQty < 1 || Number.isNaN(newQty)) return;
 
     const key = `${productId}_${size}`;
@@ -73,24 +53,10 @@ const Cart = () => {
   const handleDelete = (productId: string, size: string) => {
     const key = `${productId}_${size}`;
     setDeletingKey(key);
-    deleteMutation.mutate({ productId, size });
+    deleteMutation.mutate({ productId, size }, { onSettled: () => setDeletingKey(null) });
   };
 
-  const { subtotal, shippingFee, total } = useMemo(() => {
-    let sub = 0;
-    cart.forEach((item) => {
-      const key = `${item.productId}_${item.size}`;
-      const qty = quantityMap[key] ?? item.quantity;
-      sub += item.price * qty;
-    });
-
-    const shipping = Math.ceil(sub * 0.1);
-    return {
-      subtotal: sub,
-      shippingFee: shipping,
-      total: sub + shipping,
-    };
-  }, [cart, quantityMap]);
+  const { subtotal, shippingFee, total } = useMemo(() => calculateCartTotals(cart, quantityMap), [cart, quantityMap]);
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
@@ -193,6 +159,4 @@ const Cart = () => {
       <Footer />
     </ScrollView>
   );
-};
-
-export default Cart;
+}

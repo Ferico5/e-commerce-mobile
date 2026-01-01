@@ -1,100 +1,49 @@
-import CategoryBox from '@/components/CategoryBox';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import ProductBox from '@/components/ProductBox';
-import ProductSkeleton from '@/components/ProductSkeleton';
-import TitleBox from '@/components/TitleBox';
-import { fetchProducts } from '@/queries/products';
-import { useQuery } from '@tanstack/react-query';
+import { useProducts } from '@/features/product/hooks';
+import { useCollectionFilter } from '@/features/product/hooks/useCollectionFilter';
+import CategoryBox from '@/shared/components/CategoryBox';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
+import ProductBox from '@/shared/components/ProductBox';
+import ProductSkeleton from '@/shared/components/ProductSkeleton';
+import TitleBox from '@/shared/components/TitleBox';
+import { optimizeCloudinaryUrl } from '@/shared/utils/optimizeCloudinary';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-const Search = require('@/assets/frontend_assets/search_icon.png');
-const Close = require('@/assets/frontend_assets/cross_icon.png');
+import Close from '@/assets/frontend_assets/cross_icon.png';
+import Search from '@/assets/frontend_assets/search_icon.png';
 
 export default function Collection() {
-  const [sortOption, setSortOption] = useState('Relevent');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
   const { showSearch } = useLocalSearchParams<{ showSearch?: string }>();
   const isSearchVisible = showSearch === 'true';
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  const { data: products = [], isLoading, isError } = useProducts();
+
+  const { products: filteredProducts, sortOption, setSortOption, searchTerm, setSearchTerm, selectedCategories, selectedSubCategories, toggleCategory, toggleSubCategory } = useCollectionFilter(products);
+
+  const isSortOption = (value: string): value is 'Relevent' | 'LowToHigh' | 'HighToLow' => {
+    return ['Relevent', 'LowToHigh', 'HighToLow'].includes(value);
+  };
+
   const [openFilters, setOpenFilters] = useState(false);
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState<string | null>(sortOption);
+  const [value, setValue] = useState(sortOption);
   const [items, setItems] = useState([
     { label: 'Sort by: Relevent', value: 'Relevent' },
     { label: 'Sort by: Low to High', value: 'LowToHigh' },
     { label: 'Sort by: High to Low', value: 'HighToLow' },
   ]);
 
-  const {
-    data: products = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchProducts,
-  });
-
-  if (isError) {
-    Alert.alert('Error', 'Failed to load products.');
-  }
-
-  // debounce search
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 300);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchTerm]);
-
-  // Filter Category (Gender)
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategories((prev) => (prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]));
-  };
-
-  // Filter Sub Category (Types)
-  const handleSubCategoryChange = (type: string) => {
-    setSelectedSubCategories((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
-  };
-
-  // Show Filter what users checklist and search
-  const getFilteredProducts = () => {
-    return products.filter((product) => {
-      const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
-      const subCategoryMatch = selectedSubCategories.length === 0 || selectedSubCategories.includes(product.subCategory);
-      const searchMatch = product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-
-      return categoryMatch && subCategoryMatch && (!showSearch || searchMatch || debouncedSearchTerm === '');
-    });
-  };
-
-  // Sort By Price and Filter
-  const getSortedProducts = () => {
-    const filtered = getFilteredProducts();
-    if (sortOption === 'LowToHigh') {
-      return [...filtered].sort((a, b) => a.price - b.price);
-    } else if (sortOption === 'HighToLow') {
-      return [...filtered].sort((a, b) => b.price - a.price);
+    if (isError) {
+      Alert.alert('Error', 'Failed to load products.');
     }
-    return filtered;
-  };
-
-  // optimize cloudinary img
-  const optimizeCloudinaryUrl = (url: string): string => {
-    if (!url) return '';
-    return url.replace('/upload/', '/upload/f_auto,q_auto/');
-  };
+  }, [isError]);
 
   return (
-    <ScrollView className="flex" showsVerticalScrollIndicator={false}>
+    <ScrollView showsVerticalScrollIndicator={false}>
       <Header />
 
       {isSearchVisible && (
@@ -129,9 +78,9 @@ export default function Collection() {
       {/* show or hide filter */}
       {openFilters && (
         <>
-          <CategoryBox title="CATEGORIES" categories={['Men', 'Women', 'Kids']} selected={selectedCategories} onChange={handleCategoryChange} className="my-5" />
+          <CategoryBox title="CATEGORIES" categories={['Men', 'Women', 'Kids']} selected={selectedCategories} onChange={toggleCategory} className="my-5" />
 
-          <CategoryBox title="TYPE" categories={['Topwear', 'Bottomwear', 'Winterwear']} selected={selectedSubCategories} onChange={handleSubCategoryChange} className="" />
+          <CategoryBox title="TYPE" categories={['Topwear', 'Bottomwear', 'Winterwear']} selected={selectedSubCategories} onChange={toggleSubCategory} className="" />
         </>
       )}
 
@@ -148,7 +97,11 @@ export default function Collection() {
           setOpen={setOpen}
           setValue={setValue}
           setItems={setItems}
-          onChangeValue={(val) => val && setSortOption(val)}
+          onChangeValue={(val) => {
+            if (val && isSortOption(val)) {
+              setSortOption(val);
+            }
+          }}
           style={{ borderColor: '#E5E7EB', borderWidth: 1, height: 30 }}
           textStyle={{ fontFamily: 'Outfit_400Regular', color: '#000', fontSize: 12 }}
           selectedItemContainerStyle={{ backgroundColor: '#bbdefb' }}
@@ -159,7 +112,7 @@ export default function Collection() {
       <View className="flex-row flex-wrap justify-between mt-5">
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => <ProductSkeleton key={i} />)
-          : getSortedProducts().map((product) => <ProductBox key={product._id} id={product._id} image={optimizeCloudinaryUrl(product.image[0])} name={product.name} price={product.price} />)}
+          : filteredProducts.map((product) => <ProductBox key={product._id} id={product._id} image={optimizeCloudinaryUrl(product.image[0])} name={product.name} price={product.price} />)}
       </View>
 
       <Footer />

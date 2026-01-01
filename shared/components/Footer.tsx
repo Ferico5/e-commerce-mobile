@@ -1,5 +1,5 @@
+import LogoIcon from '@/assets/frontend_assets/logo.png';
 import { Image, Text, View } from 'react-native';
-const LogoIcon = require('@/assets/frontend_assets/logo.png');
 
 export default function Footer() {
   return (

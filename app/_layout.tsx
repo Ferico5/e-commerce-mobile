@@ -1,5 +1,5 @@
-import { AuthProvider } from '@/auth/AuthContext';
-import { CartProvider } from '@/auth/CartContext';
+import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
 import '@/global.css';
 import { Outfit_400Regular } from '@expo-google-fonts/outfit';
 import { Prata_400Regular } from '@expo-google-fonts/prata';

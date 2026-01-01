@@ -1,11 +1,11 @@
-import { useAuth } from '@/auth/AuthContext';
-import { useCart } from '@/auth/CartContext';
+import cartIcon from '@/assets/frontend_assets/cart_icon.png';
+import LogoIcon from '@/assets/frontend_assets/logo.png';
+import profileIcon from '@/assets/frontend_assets/profile_icon.png';
+import searchIcon from '@/assets/frontend_assets/search_icon.png';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { Link, useRouter } from 'expo-router';
 import { Image, Pressable, Text, View } from 'react-native';
-const LogoIcon = require('@/assets/frontend_assets/logo.png');
-const searchIcon = require('@/assets/frontend_assets/search_icon.png');
-const profileIcon = require('@/assets/frontend_assets/profile_icon.png');
-const cartIcon = require('@/assets/frontend_assets/cart_icon.png');
 
 export default function Header() {
   const { logout, user } = useAuth();

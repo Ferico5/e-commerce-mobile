@@ -1,65 +1,36 @@
-import { useAuth } from '@/auth/AuthContext';
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import ProductBox from '@/components/ProductBox';
-import ProductDetailSkeleton from '@/components/ProductDetailSkeleton';
-import { addToCart } from '@/queries/cart';
-import { fetchProductDetail, fetchRelatedProducts, ProductProps } from '@/queries/products';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
+import { useAddToCart } from '@/features/cart/hooks';
+import { useProductDetail, useRelatedProducts } from '@/features/product/hooks';
+import { useProductDetailState } from '@/features/product/hooks/useProductDetailState';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
+import ProductBox from '@/shared/components/ProductBox';
+import ProductDetailSkeleton from '@/shared/components/ProductDetailSkeleton';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 
-const star = require('@/assets/frontend_assets/star_icon.png');
-const star_dull = require('@/assets/frontend_assets/star_dull_icon.png');
+import star_dull from '@/assets/frontend_assets/star_dull_icon.png';
+import star from '@/assets/frontend_assets/star_icon.png';
 
 export default function ProductDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [mainImage, setMainImage] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');
   const { user, authReady } = useAuth();
-  const scrollRef = useRef<ScrollView>(null);
-  const queryClient = useQueryClient();
 
-  // product detail query
-  const {
-    data: product,
-    isLoading,
-    isError,
-  } = useQuery<ProductProps>({
-    queryKey: ['product', id],
-    queryFn: () => fetchProductDetail(id!),
-    enabled: !!id,
-  });
+  const { data: product, isLoading, isError } = useProductDetail(id);
+  const { data: relatedProducts = [] } = useRelatedProducts(product?.category, product?._id);
 
-  if (isError) {
-    Alert.alert('Error', 'Failed to load product detail.');
-  }
+  const { mainImage, setMainImage, selectedSize, setSelectedSize, scrollRef } = useProductDetailState(product);
+
+  const addToCartMutation = useAddToCart();
 
   useEffect(() => {
-    if (!product) return;
+    if (isError) {
+      Alert.alert('Error', 'Failed to load product detail.');
+    }
+  }, [isError]);
 
-    setMainImage(product.image[0]);
-    setSelectedSize('');
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
-  }, [product]);
-
-  // related product query
-  const { data: relatedProducts = [] } = useQuery<ProductProps[]>({
-    queryKey: ['related_products', product?.category, product?._id],
-    queryFn: () => fetchRelatedProducts(product!.category, product!._id),
-    enabled: !!product?.category && !!product?._id,
-  });
-
-  const addToCartMutation = useMutation({
-    mutationFn: addToCart,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      Alert.alert('Success', 'Item added to cart!');
-    },
-  });
-
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!authReady) return;
     if (!user) return router.push('/Auth');
 
@@ -76,8 +47,6 @@ export default function ProductDetail() {
       size: selectedSize,
     });
   };
-
-  const isAddingToCart = addToCartMutation.isPending;
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -137,8 +106,8 @@ export default function ProductDetail() {
                   >
                     <Text
                       className={`
-              ${isAvailable ? (isSelected ? 'text-white' : 'text-black') : 'text-gray-400'}
-            `}
+                ${isAvailable ? (isSelected ? 'text-white' : 'text-black') : 'text-gray-400'}
+              `}
                     >
                       {size}
                     </Text>
@@ -149,12 +118,12 @@ export default function ProductDetail() {
           </View>
 
           {/* Add to Cart Button */}
-          <Pressable className={`mt-9 border bg-black self-start items-center justify-center ${isAddingToCart ? 'opacity-70' : ''}`} onPress={handleAddToCart} disabled={isAddingToCart}>
+          <Pressable className={`mt-9 border bg-black self-start items-center justify-center ${addToCartMutation.isPending ? 'opacity-70' : ''}`} onPress={handleAddToCart} disabled={addToCartMutation.isPending}>
             {/* Invisible text to lock width */}
             <Text className="px-8 py-3 text-sm text-white font-outfit opacity-0">ADD TO CART</Text>
 
             {/* Overlay */}
-            <View className="absolute">{isAddingToCart ? <ActivityIndicator size="small" color="#fff" /> : <Text className="px-8 py-3 text-sm text-white font-outfit">ADD TO CART</Text>}</View>
+            <View className="absolute">{addToCartMutation.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Text className="px-8 py-3 text-sm text-white font-outfit">ADD TO CART</Text>}</View>
           </Pressable>
 
           {/* 100% original product */}

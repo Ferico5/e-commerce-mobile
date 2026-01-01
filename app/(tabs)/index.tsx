@@ -1,42 +1,34 @@
-import Footer from '@/components/Footer';
-import Header from '@/components/Header';
-import ProductBox from '@/components/ProductBox';
-import ProductSkeleton from '@/components/ProductSkeleton';
-import SubscribeBox from '@/components/SubscribeBox';
-import TitleBox from '@/components/TitleBox';
-import WhyUs from '@/components/WhyUs';
-import { fetchProducts } from '@/queries/products';
-import { useQuery } from '@tanstack/react-query';
+import { useProducts } from '@/features/product/hooks';
+import { getBestSellerList, getLastCollectionList } from '@/features/product/utils';
+import Footer from '@/shared/components/Footer';
+import Header from '@/shared/components/Header';
+import ProductBox from '@/shared/components/ProductBox';
+import ProductSkeleton from '@/shared/components/ProductSkeleton';
+import SubscribeBox from '@/shared/components/SubscribeBox';
+import TitleBox from '@/shared/components/TitleBox';
+import WhyUs from '@/shared/components/WhyUs';
+import { useEffect } from 'react';
 import { Alert, Image, ScrollView, Text, View } from 'react-native';
 
-const heroImage = require('@/assets/frontend_assets/hero_img.png');
-const exchangeIcon = require('@/assets/frontend_assets/exchange_icon.png');
-const qualityIcon = require('@/assets/frontend_assets/quality_icon.png');
-const supportIcon = require('@/assets/frontend_assets/support_img.png');
+import exchangeIcon from '@/assets/frontend_assets/exchange_icon.png';
+import heroImage from '@/assets/frontend_assets/hero_img.png';
+import qualityIcon from '@/assets/frontend_assets/quality_icon.png';
+import supportIcon from '@/assets/frontend_assets/support_img.png';
 
 export default function Index() {
-  const {
-    data: products = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchProducts,
-  });
+  const { data: products = [], isLoading, isError } = useProducts();
 
-  if (isError) {
-    Alert.alert('Error', 'Failed to load products.');
-  }
+  useEffect(() => {
+    if (isError) {
+      Alert.alert('Error', 'Failed to load products.');
+    }
+  }, [isError]);
 
-  const lastCollectionList = [...products].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10);
-
-  const bestSellerList = products
-    .filter((item) => item.bestSeller)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+  const lastCollectionList = getLastCollectionList(products);
+  const bestSellerList = getBestSellerList(products);
 
   return (
-    <ScrollView className="flex" showsVerticalScrollIndicator={false}>
+    <ScrollView showsVerticalScrollIndicator={false}>
       {/* header */}
       <Header />
       {/* Hero */}

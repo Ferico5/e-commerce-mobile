@@ -1,5 +1,5 @@
-import { fetchCart } from '@/queries/cart';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFetchCart } from '@/features/cart/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 import { createContext, ReactNode, useContext, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 
@@ -14,11 +14,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { user, authReady } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: cart = [] } = useQuery({
-    queryKey: ['cart'],
-    queryFn: fetchCart,
-    enabled: authReady && !!user,
-  });
+  const { data: cart = [] } = useFetchCart(authReady && !!user);
 
   const cartCount = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.quantity, 0);
