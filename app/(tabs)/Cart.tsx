@@ -1,22 +1,34 @@
-import { useAuth } from '@/context/AuthContext';
-import { useDeleteCartItem, useFetchCart, useUpdateCartQty } from '@/features/cart/hooks';
-import { calculateCartTotals } from '@/features/cart/utils';
-import Footer from '@/shared/components/Footer';
-import Header from '@/shared/components/Header';
-import TitleBox from '@/shared/components/TitleBox';
-import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  useDeleteCartItem,
+  useFetchCart,
+  useUpdateCartQty,
+} from "@/features/cart/hooks";
+import { calculateCartTotals } from "@/features/cart/utils";
+import Footer from "@/shared/components/Footer";
+import Header from "@/shared/components/Header";
+import TitleBox from "@/shared/components/TitleBox";
+import { useAuthStore } from "@/stores/auth.store";
+import { router } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-import binIcon from '@/assets/frontend_assets/bin_icon.png';
+import binIcon from "@/assets/frontend_assets/bin_icon.png";
 
 type QuantityMap = Record<string, number>;
 type InputMap = Record<string, string>;
 
 export default function Cart() {
-  const { user, authReady } = useAuth();
+  const user = useAuthStore((state) => state.user);
 
-  const { data: cart = [] } = useFetchCart(authReady && !!user);
+  const { data: cart = [] } = useFetchCart(!!user);
   const updateQtyMutation = useUpdateCartQty();
   const deleteMutation = useDeleteCartItem();
 
@@ -33,7 +45,11 @@ export default function Cart() {
     setQuantityMap(map);
   }, [cart]);
 
-  const handleQuantityChange = (productId: string, size: string, newQty: number) => {
+  const handleQuantityChange = (
+    productId: string,
+    size: string,
+    newQty: number
+  ) => {
     if (newQty < 1 || Number.isNaN(newQty)) return;
 
     const key = `${productId}_${size}`;
@@ -53,10 +69,16 @@ export default function Cart() {
   const handleDelete = (productId: string, size: string) => {
     const key = `${productId}_${size}`;
     setDeletingKey(key);
-    deleteMutation.mutate({ productId, size }, { onSettled: () => setDeletingKey(null) });
+    deleteMutation.mutate(
+      { productId, size },
+      { onSettled: () => setDeletingKey(null) }
+    );
   };
 
-  const { subtotal, shippingFee, total } = useMemo(() => calculateCartTotals(cart, quantityMap), [cart, quantityMap]);
+  const { subtotal, shippingFee, total } = useMemo(
+    () => calculateCartTotals(cart, quantityMap),
+    [cart, quantityMap]
+  );
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
@@ -70,22 +92,35 @@ export default function Cart() {
         <Text>Cart is Empty</Text>
       ) : (
         cart.map((item) => (
-          <View key={`${item.productId}_${item.size}`} className="flex flex-row justify-between items-center border-b border-t border-[#E5E7EB] py-4">
+          <View
+            key={`${item.productId}_${item.size}`}
+            className="flex flex-row justify-between items-center border-b border-t border-[#E5E7EB] py-4"
+          >
             {/* image */}
-            <Image source={{ uri: item.image[0] }} className="w-24 h-32" resizeMode="cover" />
+            <Image
+              source={{ uri: item.image[0] }}
+              className="w-24 h-32"
+              resizeMode="cover"
+            />
 
             {/* detail */}
             <View className="flex flex-col justify-between h-32 w-[40%]">
               <Text className="font-outfit font-semibold">{item.name}</Text>
               <Text className="font-outfit">Rp {item.price}</Text>
-              <Text className="font-outfit border border-[#E5E7EB] px-3 py-1 bg-[#F8FAFC] self-start">{item.size}</Text>
+              <Text className="font-outfit border border-[#E5E7EB] px-3 py-1 bg-[#F8FAFC] self-start">
+                {item.size}
+              </Text>
             </View>
 
             {/* qty input */}
             <View className="flex items-center justify-center">
               <TextInput
                 keyboardType="number-pad"
-                value={inputMap[`${item.productId}_${item.size}`] ?? quantityMap[`${item.productId}_${item.size}`]?.toString() ?? '1'}
+                value={
+                  inputMap[`${item.productId}_${item.size}`] ??
+                  quantityMap[`${item.productId}_${item.size}`]?.toString() ??
+                  "1"
+                }
                 className="w-12 border py-1 px-2 border-[#E5E7EB] text-center"
                 onChangeText={(text) => {
                   if (!/^\d*$/.test(text)) return;
@@ -125,8 +160,15 @@ export default function Cart() {
             </View>
 
             {/* trash icon */}
-            <Pressable disabled={deletingKey === `${item.productId}_${item.size}`} onPress={() => handleDelete(item.productId, item.size)}>
-              {deletingKey === `${item.productId}_${item.size}` ? <ActivityIndicator size="small" /> : <Image source={binIcon} className="w-5 h-5" />}
+            <Pressable
+              disabled={deletingKey === `${item.productId}_${item.size}`}
+              onPress={() => handleDelete(item.productId, item.size)}
+            >
+              {deletingKey === `${item.productId}_${item.size}` ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <Image source={binIcon} className="w-5 h-5" />
+              )}
             </Pressable>
           </View>
         ))
@@ -140,18 +182,28 @@ export default function Cart() {
 
         <View className="flex-row justify-between pb-2 mt-3 border-b border-[#E5E7EB]">
           <Text className="font-outfit">Subtotal</Text>
-          <Text className="font-outfit">Rp {subtotal.toLocaleString('id-ID')}</Text>
+          <Text className="font-outfit">
+            Rp {subtotal.toLocaleString("id-ID")}
+          </Text>
         </View>
         <View className="flex-row justify-between pb-2 mt-3 border-b border-[#E5E7EB]">
           <Text className="font-outfit">Shipping Fee</Text>
-          <Text className="font-outfit">Rp {shippingFee.toLocaleString('id-ID')}</Text>
+          <Text className="font-outfit">
+            Rp {shippingFee.toLocaleString("id-ID")}
+          </Text>
         </View>
         <View className="flex-row justify-between pb-2 mt-3 border-b border-[#E5E7EB]">
           <Text className="font-outfit">Total</Text>
-          <Text className="font-outfit">Rp {total.toLocaleString('id-ID')}</Text>
+          <Text className="font-outfit">
+            Rp {total.toLocaleString("id-ID")}
+          </Text>
         </View>
 
-        <Pressable onPress={() => router.push('/PlaceOrder')} disabled={cart.length === 0} className={`px-6 py-3 mt-5 self-end ${cart.length === 0 ? 'bg-gray-400' : 'bg-black'}`}>
+        <Pressable
+          onPress={() => router.push("/PlaceOrder")}
+          disabled={cart.length === 0}
+          className={`px-6 py-3 mt-5 self-end ${cart.length === 0 ? "bg-gray-400" : "bg-black"}`}
+        >
           <Text className="font-outfit text-white">PROCEED TO CHECKOUT</Text>
         </Pressable>
       </View>
