@@ -2,15 +2,16 @@ import cartIcon from "@/assets/frontend_assets/cart_icon.png";
 import LogoIcon from "@/assets/frontend_assets/logo.png";
 import profileIcon from "@/assets/frontend_assets/profile_icon.png";
 import searchIcon from "@/assets/frontend_assets/search_icon.png";
-import { useCart } from "@/context/CartContext";
 import { useAuthStore } from "@/stores/auth.store";
+import { useCartStore } from "@/stores/cart.store";
 import { Link, useRouter } from "expo-router";
 import { Image, Pressable, Text, View } from "react-native";
 
 export default function Header() {
   const user = useAuthStore((state) => state.user);
+  const cartCount = useCartStore((state) => state.cartCount);
   const logout = useAuthStore((state) => state.logout);
-  const { cartCount, resetCart } = useCart();
+  const resetCart = useCartStore((state) => state.resetCart);
   const router = useRouter();
 
   const handleLogout = () => {
